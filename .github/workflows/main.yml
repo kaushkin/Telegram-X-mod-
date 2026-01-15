@@ -23,6 +23,11 @@ jobs:
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
 
+    - name: Create local.properties
+      run: |
+        echo "api_id=${{ secrets.API_ID }}" > local.properties
+        echo "api_hash=${{ secrets.API_HASH }}" >> local.properties
+
     - name: Build with Gradle
       run: ./gradlew assembleDebug --stacktrace
 
