@@ -20,6 +20,7 @@ import org.thunderdog.challegram.theme.ColorId;
 import org.thunderdog.challegram.support.ViewSupport;
 import org.thunderdog.challegram.tool.UI;
 import org.thunderdog.challegram.tool.Views;
+import org.thunderdog.challegram.tool.Screen;
 import org.thunderdog.challegram.util.StringList;
 import org.thunderdog.challegram.widget.BaseView;
 import org.thunderdog.challegram.widget.TimerView;
@@ -45,6 +46,11 @@ public class GhostSettingsController extends ViewController<Void> implements Vie
     public int getId() {
         return 199001;
     }
+    
+    @Override
+    public CharSequence getTitle() {
+        return "Настройки удаления";
+    }
 
     @Override
     protected View onCreateView(Context context) {
@@ -54,22 +60,13 @@ public class GhostSettingsController extends ViewController<Void> implements Vie
 
         // Header
         HeaderView header = new HeaderView(context);
-        header.setTitle("Настройки удаления"); // Saved Messages Settings
-        header.setBackArrow(new HeaderButton(context).setIcon(R.drawable.baseline_arrow_back_24).setOnClickListener(v -> close()));
-        header.setBackgroundColor(ColorId.header);
+        header.initWithSingleController(this, true);
+        header.getBackButton().setOnClickListener(v -> navigateBack());
         addThemeInvalidateListener(header);
         
         // RecyclerView
         recyclerView = new RecyclerView(context);
         recyclerView.setLayoutManager(new LinearLayoutManager(context));
-        recyclerView.setPadding(0, header.getLayoutParams().height + 150, 0, 0); // Offset for header approximately
-        // Better handling of margins/header
-        FrameLayoutFix.LayoutParams recyclerParams = new FrameLayoutFix.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
-        // recyclerParams.topMargin = ... we should use correct layout management
-        
-        // Let's use simple layout for now: Header on top, recycler fills
-        // But HeaderView in FrameLayout stays on top usually.
-        // We'll set padding to RecyclerView equal to header height + status bar.
         
         adapter = new SettingsAdapter(this) {
              @Override
@@ -92,7 +89,7 @@ public class GhostSettingsController extends ViewController<Void> implements Vie
         recyclerView.setAdapter(adapter);
         
         frame.addView(recyclerView);
-        frame.addView(header); // Add header last to be on top
+        frame.addView(header);
 
         return frame;
     }
@@ -100,10 +97,6 @@ public class GhostSettingsController extends ViewController<Void> implements Vie
     @Override
     public void onActivityResume() {
         super.onActivityResume();
-        // Adjust padding for header
-        if (getApplication().getMainExecutor() != null) { // Simple check
-           // UI.run(() -> {}); 
-        }
     }
 
     @Override
@@ -120,8 +113,7 @@ public class GhostSettingsController extends ViewController<Void> implements Vie
     @Override
     public void dispatchSystemInsets(View parentView, ViewGroup.MarginLayoutParams originalParams, android.graphics.Rect legacyInsets, android.graphics.Rect insets, android.graphics.Rect insetsWithoutIme, android.graphics.Rect systemInsets, android.graphics.Rect systemInsetsWithoutIme, boolean fitsSystemWindows) {
         super.dispatchSystemInsets(parentView, originalParams, legacyInsets, insets, insetsWithoutIme, systemInsets, systemInsetsWithoutIme, fitsSystemWindows);
-        // header height + status bar
-        recyclerView.setPadding(0, systemInsets.top + me.vkryl.core.Screen.dp(56), 0, systemInsets.bottom);
+        recyclerView.setPadding(0, systemInsets.top + Screen.dp(56), 0, systemInsets.bottom);
     }
 
     @Override
@@ -131,10 +123,13 @@ public class GhostSettingsController extends ViewController<Void> implements Vie
             boolean newState = !DeletedMessagesManager.getInstance().isGhostEnabled();
             DeletedMessagesManager.getInstance().setGhostEnabled(newState);
             
-            ListItem item = adapter.getItemById(id);
-            if (item != null) {
-                // In SettingsAdapter, toggling is often handled by setToggled
-                adapter.setToggled(item, newState);
+            int index = adapter.indexOfViewById(id);
+            if (index != -1) {
+                ListItem item = adapter.getItem(index);
+                if (item != null) {
+                    item.setBoolValue(newState);
+                    adapter.updateValuedSettingByPosition(index);
+                }
             }
         } else if (id == ID_CLEAR_GHOSTS) {
             DeletedMessagesManager.getInstance().clearAllGhosts();

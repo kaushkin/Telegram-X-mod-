@@ -42,23 +42,25 @@ public class DeletedMessagesManager {
         }
     }
 
-    public void updateMessageContent(long chatId, long messageId, TdApi.MessageContent content) {
-        TdApi.Message cached = messageCache.get(messageId);
-        if (cached != null && cached.chatId == chatId) {
-            cached.content = content;
+    private SharedPreferences prefs;
+
+    public void init(Context context) {
+        this.context = context;
+        this.prefs = context.getSharedPreferences("ghost_settings", Context.MODE_PRIVATE);
+        this.savedMessagesDir = new File(context.getExternalFilesDir(null), "deleted_msgs_v1");
+        if (!savedMessagesDir.exists()) {
+            savedMessagesDir.mkdirs();
         }
     }
-
-    public static DeletedMessagesManager getInstance() {
-        return INSTANCE;
-    }
-
+ 
     public boolean isGhostEnabled() {
-        return prefs.getBoolean("ghost_enabled", true);
+        return prefs != null && prefs.getBoolean("ghost_enabled", true);
     }
     
     public void setGhostEnabled(boolean enabled) {
-        prefs.edit().putBoolean("ghost_enabled", enabled).apply();
+        if (prefs != null) {
+            prefs.edit().putBoolean("ghost_enabled", enabled).apply();
+        }
     }
     
     public void clearAllGhosts() {
