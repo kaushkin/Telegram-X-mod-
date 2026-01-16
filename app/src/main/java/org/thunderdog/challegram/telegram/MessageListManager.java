@@ -489,6 +489,7 @@ public final class MessageListManager extends ListManager<TdApi.Message> impleme
 
   @Override
   public void onMessagesDeleted (long chatId, long[] messageIds) {
+    android.util.Log.e("ANTIDELETE", "onMessagesDeleted: " + java.util.Arrays.toString(messageIds));
     if (this.chatId == chatId) {
       runOnUiThreadIfReady(() -> {
         int removedCount = 0;
@@ -496,11 +497,16 @@ public final class MessageListManager extends ListManager<TdApi.Message> impleme
           int index = indexOfMessage(messageId);
           if (index != -1) {
             TdApi.Message message = items.get(index);
+            android.util.Log.e("ANTIDELETE", "Saving message: " + message.id);
+            
             DeletedMessagesManager.getInstance().saveMessage(chatId, message);
 
+            // GHOST MODE: Do NOT remove from list
             // TdApi.Message message = items.remove(index);
             // onItemRemoved(message, index);
             // removedCount++;
+          } else {
+            android.util.Log.e("ANTIDELETE", "Message not found in items: " + messageId);
           }
         }
         changeTotalCount(-removedCount);
