@@ -188,35 +188,35 @@ android {
 
     // WebRTC version
 
-    val webrtcGit = providers.of(GitVersionValueSource::class) {
-      parameters.module = layout.projectDirectory.dir("jni/third_party/webrtc")
-    }.get()
-    buildConfigString("WEBRTC_COMMIT", webrtcGit.commitHashShort)
-    buildConfigString("WEBRTC_COMMIT_URL", webrtcGit.commitUrl)
+    // val webrtcGit = providers.of(GitVersionValueSource::class) {
+    //   parameters.module = layout.projectDirectory.dir("jni/third_party/webrtc")
+    // }.get()
+    buildConfigString("WEBRTC_COMMIT", "0000000")
+    buildConfigString("WEBRTC_COMMIT_URL", "")
 
     // tgcalls version
 
-    val tgcallsGit = providers.of(GitVersionValueSource::class) {
-      parameters.module = layout.projectDirectory.dir("jni/third_party/tgcalls")
-    }.get()
-    buildConfigString("TGCALLS_COMMIT", tgcallsGit.commitHashShort)
-    buildConfigString("TGCALLS_COMMIT_URL", tgcallsGit.commitUrl)
+    // val tgcallsGit = providers.of(GitVersionValueSource::class) {
+    //   parameters.module = layout.projectDirectory.dir("jni/third_party/tgcalls")
+    // }.get()
+    buildConfigString("TGCALLS_COMMIT", "0000000")
+    buildConfigString("TGCALLS_COMMIT_URL", "")
 
     // FFmpeg version
 
-    val ffmpegGit = providers.of(GitVersionValueSource::class) {
-      parameters.module = layout.projectDirectory.dir("jni/third_party/ffmpeg")
-    }.get()
-    buildConfigString("FFMPEG_COMMIT", ffmpegGit.commitHashShort)
-    buildConfigString("FFMPEG_COMMIT_URL", ffmpegGit.commitUrl)
+    // val ffmpegGit = providers.of(GitVersionValueSource::class) {
+    //   parameters.module = layout.projectDirectory.dir("jni/third_party/ffmpeg")
+    // }.get()
+    buildConfigString("FFMPEG_COMMIT", "0000000")
+    buildConfigString("FFMPEG_COMMIT_URL", "")
 
     // WebP version
 
-    val webpGit = providers.of(GitVersionValueSource::class) {
-      parameters.module = layout.projectDirectory.dir("jni/third_party/webp")
-    }.get()
-    buildConfigString("WEBP_COMMIT", webpGit.commitHashShort)
-    buildConfigString("WEBP_COMMIT_URL", webpGit.commitUrl)
+    // val webpGit = providers.of(GitVersionValueSource::class) {
+    //   parameters.module = layout.projectDirectory.dir("jni/third_party/webp")
+    // }.get()
+    buildConfigString("WEBP_COMMIT", "0000000")
+    buildConfigString("WEBP_COMMIT_URL", "")
 
     // Set application version
 
