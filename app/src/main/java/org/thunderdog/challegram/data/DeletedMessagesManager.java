@@ -82,14 +82,26 @@ public class DeletedMessagesManager {
     }
 
     public List<TdApi.Message> getDeletedMessages(long chatId) {
-        if (savedMessagesDir == null) return Collections.emptyList();
+        if (savedMessagesDir == null) {
+            android.util.Log.e(TAG, "getDeletedMessages: savedMessagesDir is null");
+            return Collections.emptyList();
+        }
 
         File chatDir = new File(savedMessagesDir, String.valueOf(chatId));
-        if (!chatDir.exists()) return Collections.emptyList();
+        if (!chatDir.exists()) {
+             android.util.Log.e(TAG, "getDeletedMessages: Chat dir not found: " + chatDir.getAbsolutePath());
+             return Collections.emptyList();
+        }
 
         List<TdApi.Message> messages = new ArrayList<>();
         File[] files = chatDir.listFiles();
-        if (files == null) return messages;
+        if (files == null) {
+             android.util.Log.e(TAG, "getDeletedMessages: listFiles returned null");
+             return messages;
+        }
+
+        android.util.Log.e(TAG, "getDeletedMessages: Found " + files.length + " saved message files in " + chatDir.getName());
+
 
         for (File f : files) {
             try {

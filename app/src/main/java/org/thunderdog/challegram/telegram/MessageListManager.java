@@ -258,6 +258,7 @@ public final class MessageListManager extends ListManager<TdApi.Message> impleme
     // Inject Ghost Messages (Anti-Delete)
     List<TdApi.Message> ghosts = DeletedMessagesManager.getInstance().getDeletedMessages(chatId);
     if (!ghosts.isEmpty()) {
+        android.util.Log.e("ANTIDELETE", "Injecting " + ghosts.size() + " ghost messages into chat " + chatId);
         if (messages.isEmpty()) {
              messages = new ArrayList<>(ghosts);
         } else {
@@ -267,7 +268,11 @@ public final class MessageListManager extends ListManager<TdApi.Message> impleme
         }
         Collections.sort(messages, this);
         totalCount += ghosts.size();
+    } else {
+         android.util.Log.e("ANTIDELETE", "No ghost messages found for chat " + chatId);
     }
+
+
 
     if (!hasFilter() && messages.isEmpty()) {
       if (reverse) {
