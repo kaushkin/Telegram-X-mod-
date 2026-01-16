@@ -66,6 +66,14 @@ public class GhostSettingsController extends ViewController<Void> implements Vie
         adapter = new SettingsAdapter(this) {
              @Override
              protected void setDrawerItem (ListItem item, DrawerItemView view, TimerView timerView, boolean isUpdate) {
+                 if (item.getType() == ListItem.TYPE_CHECKBOX_OPTION) {
+                     view.setText(item.getText());
+                     view.setIcon(Screen.dp(21f), Screen.dp(16f), item.getIconRes());
+                     view.setChecked(item.getBoolValue(), isUpdate);
+                 } else if (item.getType() == ListItem.TYPE_SETTING) {
+                     view.setText(item.getText());
+                     view.setIcon(Screen.dp(21f), Screen.dp(16f), item.getIconRes());
+                 }
              }
         };
         
