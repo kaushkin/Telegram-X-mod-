@@ -58,6 +58,7 @@ public final class MessageListManager extends ListManager<TdApi.Message> impleme
     subscribeToUpdates();
     loadTotalCount(null);
     addChangeListener(maxMessageIdListener);
+    android.util.Log.e("ANTIDELETE", "Created MessageListManager: " + Integer.toHexString(System.identityHashCode(this)));
   }
 
   @Override
@@ -491,8 +492,9 @@ public final class MessageListManager extends ListManager<TdApi.Message> impleme
   public void onMessagesDeleted (long chatId, long[] messageIds) {
     if (this.chatId == chatId) {
       runOnUiThreadIfReady(() -> {
-        android.util.Log.e("ANTIDELETE", "Checking deletion for chat " + chatId);
-        android.util.Log.e("ANTIDELETE", "Items count: " + items.size());
+        String hash = Integer.toHexString(System.identityHashCode(this));
+        android.util.Log.e("ANTIDELETE", "[" + hash + "] Checking deletion for chat " + chatId);
+        android.util.Log.e("ANTIDELETE", "[" + hash + "] Items count: " + items.size());
         if (!items.isEmpty()) {
              android.util.Log.e("ANTIDELETE", "First item ID: " + items.get(0).id);
              android.util.Log.e("ANTIDELETE", "Last item ID: " + items.get(items.size()-1).id);
