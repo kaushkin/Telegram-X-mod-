@@ -16,7 +16,7 @@ import java.util.Collections;
 import java.util.List;
 
 public class DeletedMessagesManager {
-    private static final String TAG = "AntiDelete";
+    private static final String TAG = "ANTIDELETE";
     private static final DeletedMessagesManager INSTANCE = new DeletedMessagesManager();
     private File savedMessagesDir;
 
@@ -103,11 +103,16 @@ public class DeletedMessagesManager {
     }
 
     public void onMessagesDeleted(final org.thunderdog.challegram.telegram.Tdlib tdlib, final long chatId, final long[] messageIds) {
+        android.util.Log.e(TAG, "onMessagesDeleted request: " + java.util.Arrays.toString(messageIds) + ", dir: " + savedMessagesDir);
         if (savedMessagesDir == null) return;
         for (final long messageId : messageIds) {
+             android.util.Log.e(TAG, "Requesting GetMessage: " + messageId);
              tdlib.client().send(new TdApi.GetMessage(chatId, messageId), result -> {
                  if (result.getConstructor() == TdApi.Message.CONSTRUCTOR) {
+                     android.util.Log.e(TAG, "GetMessage SUCCESS: " + messageId);
                      saveMessage(chatId, (TdApi.Message) result);
+                 } else {
+                     android.util.Log.e(TAG, "GetMessage failed for " + messageId + ": " + result);
                  }
             });
         }
