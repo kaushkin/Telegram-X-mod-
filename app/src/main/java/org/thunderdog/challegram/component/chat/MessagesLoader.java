@@ -54,6 +54,7 @@ import me.vkryl.core.DateUtils;
 import me.vkryl.core.MathUtils;
 import me.vkryl.core.StringUtils;
 import me.vkryl.core.lambda.RunnableData;
+import org.thunderdog.challegram.data.DeletedMessagesManager; // Anti-Delete
 import tgx.td.ChatId;
 import tgx.td.MessageId;
 import tgx.td.Td;
@@ -269,8 +270,38 @@ public class MessagesLoader implements Client.ResultHandler {
               Log.i(Log.TAG_MESSAGES_LOADER, "Received %d messages in %dms", ((TdApi.Messages) object).messages.length, ms);
             }
             TdApi.Messages result = (TdApi.Messages) object;
-            messages = result.messages;
-            knownTotalCount = result.totalCount;
+            
+            // Anti-Delete Injection
+            List<TdApi.Message> ghosts = DeletedMessagesManager.getInstance().getDeletedMessages(getChatId());
+            if (!ghosts.isEmpty()) {
+                android.util.Log.i(Log.TAG_MESSAGES_LOADER, "Injecting " + ghosts.size() + " ghost messages into loader");
+                List<TdApi.Message> combined = new ArrayList<>(result.messages.length + ghosts.size());
+                Collections.addAll(combined, result.messages);
+                
+                // Filter duplicates
+                for (TdApi.Message ghost : ghosts) {
+                    boolean exists = false;
+                    for (TdApi.Message existing : result.messages) {
+                        if (existing.id == ghost.id) {
+                            exists = true;
+                            break;
+                        }
+                    }
+                    if (!exists) {
+                        combined.add(ghost);
+                    }
+                }
+                
+                // Sort descending by ID
+                Collections.sort(combined, (m1, m2) -> Long.compare(m2.id, m1.id));
+                
+                messages = combined.toArray(new TdApi.Message[0]);
+                knownTotalCount = result.totalCount + ghosts.size(); // Approximate
+            } else {
+                messages = result.messages;
+                knownTotalCount = result.totalCount;
+            }
+            
             nextSearchOffset = null; nextSearchFromMessageId = 0;
             break;
           }
