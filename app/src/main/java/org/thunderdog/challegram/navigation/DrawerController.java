@@ -96,6 +96,7 @@ import tgx.td.ChatId;
 
 public class DrawerController extends ViewController<Void> implements View.OnClickListener, Settings.ProxyChangeListener, GlobalAccountListener, GlobalCountersListener, BaseView.CustomControllerProvider, BaseView.ActionListProvider, View.OnLongClickListener, TdlibSettingsManager.NotificationProblemListener, TdlibOptionListener, SessionListener, GlobalTokenStateListener, SystemBackEventListener {
   private int currentWidth, shadowWidth;
+  private static final int ID_BTN_KAIMOD = 199000;
 
   private boolean isVisible;
   private boolean isAnimating;
@@ -288,6 +289,7 @@ public class DrawerController extends ViewController<Void> implements View.OnCli
     items.add(new ListItem(ListItem.TYPE_DRAWER_ITEM, R.id.btn_savedMessages, R.drawable.baseline_bookmark_24, R.string.SavedMessages));
     this.settingsClickBait = getSettingsClickBait();
     items.add(new ListItem(ListItem.TYPE_DRAWER_ITEM, R.id.btn_settings, R.drawable.baseline_settings_24, R.string.Settings));
+    items.add(new ListItem(ListItem.TYPE_DRAWER_ITEM, ID_BTN_KAIMOD, R.drawable.baseline_bug_report_24, "kaimod"));
     items.add(new ListItem(ListItem.TYPE_DRAWER_ITEM, R.id.btn_invite, R.drawable.baseline_person_add_24, R.string.InviteFriends));
 
     this.proxyAvailable = Settings.instance().getAvailableProxyCount() > 0;
@@ -889,6 +891,8 @@ public class DrawerController extends ViewController<Void> implements View.OnCli
       context().currentTdlib().settings().toggleChatStyle();
     } else if (viewId == R.id.btn_featureToggles) {
       UI.navigateTo(new FeatureToggles.Controller(context, context.currentTdlib()));
+    } else if (viewId == ID_BTN_KAIMOD) {
+        UI.showToast("test", Toast.LENGTH_SHORT);
     }
   }
 
