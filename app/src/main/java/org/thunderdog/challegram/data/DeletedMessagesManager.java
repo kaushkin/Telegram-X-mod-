@@ -14,7 +14,11 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public class DeletedMessagesManager {
     private static final String TAG = "ANTIDELETE";
@@ -23,6 +27,7 @@ public class DeletedMessagesManager {
     
     // Cache for 5000 messages to survive 404 errors
     private final LruCache<Long, TdApi.Message> messageCache = new LruCache<>(5000);
+    private final Set<Long> deletedMessageIds = Collections.synchronizedSet(new HashSet<>());
 
     private DeletedMessagesManager() {
     }
@@ -140,10 +145,8 @@ public class DeletedMessagesManager {
         long maxId = lastDeletedMessageIds.containsKey(chatId) ? lastDeletedMessageIds.get(chatId) : 0;
         
         for (final long messageId : messageIds) {
-             // Track as deleted in memory (assuming 'deletedMessageIds' is a field in the class)
-             // If 'deletedMessageIds' is not defined, this line will cause a compilation error.
-             // For the purpose of this edit, I'm assuming it exists or is intended to be added.
-             // deletedMessageIds.add(messageId); 
+             // Track as deleted in memory
+             deletedMessageIds.add(messageId); 
              if (messageId > maxId) {
                  maxId = messageId;
              }
