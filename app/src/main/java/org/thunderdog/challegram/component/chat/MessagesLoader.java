@@ -274,7 +274,7 @@ public class MessagesLoader implements Client.ResultHandler {
             // Anti-Delete Injection
             List<TdApi.Message> ghosts = DeletedMessagesManager.getInstance().getDeletedMessages(getChatId());
             if (!ghosts.isEmpty()) {
-                android.util.Log.i(Log.TAG_MESSAGES_LOADER, "Injecting " + ghosts.size() + " ghost messages into loader");
+                Log.i(Log.TAG_MESSAGES_LOADER, "Injecting " + ghosts.size() + " ghost messages into loader");
                 List<TdApi.Message> combined = new ArrayList<>(result.messages.length + ghosts.size());
                 Collections.addAll(combined, result.messages);
                 
