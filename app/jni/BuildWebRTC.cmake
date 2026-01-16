@@ -2085,10 +2085,10 @@ add_library(webrtc STATIC
   "${WEBRTC_DIR}/modules/video_capture/device_info_impl.cc"
   "${WEBRTC_DIR}/modules/video_capture/video_capture_factory.cc"
   "${WEBRTC_DIR}/modules/video_capture/video_capture_impl.cc"
-  "${WEBRTC_DIR}/modules/video_coding/codecs/h264/h264.cc"
-  "${WEBRTC_DIR}/modules/video_coding/codecs/h264/h264_color_space.cc"
-  "${WEBRTC_DIR}/modules/video_coding/codecs/h264/h264_decoder_impl.cc"
-  "${WEBRTC_DIR}/modules/video_coding/codecs/h264/h264_encoder_impl.cc"
+  # "${WEBRTC_DIR}/modules/video_coding/codecs/h264/h264.cc"
+  # "${WEBRTC_DIR}/modules/video_coding/codecs/h264/h264_color_space.cc"
+  # "${WEBRTC_DIR}/modules/video_coding/codecs/h264/h264_decoder_impl.cc"
+  # "${WEBRTC_DIR}/modules/video_coding/codecs/h264/h264_encoder_impl.cc"
   "${WEBRTC_DIR}/modules/video_coding/codecs/multiplex/augmented_video_frame_buffer.cc"
   "${WEBRTC_DIR}/modules/video_coding/codecs/multiplex/multiplex_decoder_adapter.cc"
   "${WEBRTC_DIR}/modules/video_coding/codecs/multiplex/multiplex_encoded_image_packer.cc"
@@ -2119,13 +2119,13 @@ add_library(webrtc STATIC
   "${WEBRTC_DIR}/modules/video_coding/video_coding_defines.cc"
   "${WEBRTC_DIR}/modules/video_coding/video_receiver2.cc"
   "${WEBRTC_DIR}/modules/video_coding/codecs/vp8/default_temporal_layers.cc"
-  "${WEBRTC_DIR}/modules/video_coding/codecs/vp8/libvpx_vp8_decoder.cc"
-  "${WEBRTC_DIR}/modules/video_coding/codecs/vp8/libvpx_vp8_encoder.cc"
+  # "${WEBRTC_DIR}/modules/video_coding/codecs/vp8/libvpx_vp8_decoder.cc"
+  # "${WEBRTC_DIR}/modules/video_coding/codecs/vp8/libvpx_vp8_encoder.cc"
   "${WEBRTC_DIR}/modules/video_coding/codecs/vp8/screenshare_layers.cc"
   "${WEBRTC_DIR}/modules/video_coding/codecs/vp8/temporal_layers_checker.cc"
   "${WEBRTC_DIR}/modules/video_coding/codecs/vp9/svc_config.cc"
   "${WEBRTC_DIR}/modules/video_coding/codecs/vp9/vp9.cc"
-  "${WEBRTC_DIR}/modules/video_coding/codecs/vp9/vp9_frame_buffer_pool.cc"
+  # "${WEBRTC_DIR}/modules/video_coding/codecs/vp9/vp9_frame_buffer_pool.cc"
   "${WEBRTC_DIR}/call/adaptation/encoder_settings.cc"
   "${WEBRTC_DIR}/call/adaptation/resource_adaptation_processor_interface.cc"
   "${WEBRTC_DIR}/call/adaptation/video_source_restrictions.cc"
@@ -2355,14 +2355,14 @@ add_library(webrtc STATIC
   "${WEBRTC_DIR}/call/adaptation/adaptation_constraint.cc"
   "${WEBRTC_DIR}/modules/audio_processing/optionally_built_submodule_creators.cc"
   "${WEBRTC_DIR}/modules/rtp_rtcp/source/active_decode_targets_helper.cc"
-  "${WEBRTC_DIR}/modules/video_coding/codecs/interface/libvpx_interface.cc"
+  # "${WEBRTC_DIR}/modules/video_coding/codecs/interface/libvpx_interface.cc"
   "${WEBRTC_DIR}/modules/video_coding/rtp_generic_ref_finder.cc"
   "${WEBRTC_DIR}/pc/sctp_data_channel.cc"
   "${WEBRTC_DIR}/call/adaptation/broadcast_resource_listener.cc"
   "${WEBRTC_DIR}/call/adaptation/video_stream_input_state.cc"
   "${WEBRTC_DIR}/video/adaptation/video_stream_encoder_resource.cc"
   "${WEBRTC_DIR}/call/adaptation/resource_adaptation_processor.cc"
-  "${WEBRTC_DIR}/modules/video_coding/codecs/vp9/libvpx_vp9_decoder.cc"
+  # "${WEBRTC_DIR}/modules/video_coding/codecs/vp9/libvpx_vp9_decoder.cc"
   "${WEBRTC_DIR}/call/adaptation/video_stream_adapter.cc"
   "${WEBRTC_DIR}/modules/video_coding/rtp_seq_num_only_ref_finder.cc"
   "${WEBRTC_DIR}/modules/video_coding/rtp_vp8_ref_finder.cc"
@@ -2378,7 +2378,7 @@ add_library(webrtc STATIC
   "${WEBRTC_DIR}/video/adaptation/bitrate_constraint.cc"
   "${WEBRTC_DIR}/video/adaptation/pixel_limit_resource.cc"
   "${WEBRTC_DIR}/pc/usage_pattern.cc"
-  "${WEBRTC_DIR}/modules/video_coding/codecs/vp9/libvpx_vp9_encoder.cc"
+  # "${WEBRTC_DIR}/modules/video_coding/codecs/vp9/libvpx_vp9_encoder.cc"
   "${WEBRTC_DIR}/pc/sdp_offer_answer.cc"
   "${WEBRTC_DIR}/video/adaptation/quality_rampup_experiment_helper.cc"
   "${WEBRTC_DIR}/video/call_stats2.cc"
@@ -2670,8 +2670,8 @@ set(WEBRTC_OPTIONS
   ABSL_ALLOCATOR_NOTHROW=1
   WEBRTC_NS_FLOAT
   HAVE_PTHREAD
-  RTC_ENABLE_VP9
-  RTC_ENABLE_H265
+  # RTC_ENABLE_VP9
+  # RTC_ENABLE_H265
   WEBRTC_POSIX
   WEBRTC_LINUX
   WEBRTC_ANDROID
