@@ -286,7 +286,7 @@ public class Tdlib implements TdlibProvider, Settings.SettingsChangeListener, Da
       }
       tdlib.context.modifyClient(tdlib, client);
       
-      DeletedMessagesManager.getInstance().init(tdlib.context());
+      DeletedMessagesManager.getInstance().init(UI.getAppContext());
 
       this.resources = new TdlibResourceManager(tdlib, BuildConfig.TELEGRAM_RESOURCES_CHANNEL);
       this.updates = new TdlibResourceManager(tdlib, BuildConfig.TELEGRAM_UPDATES_CHANNEL);
@@ -7557,7 +7557,7 @@ public class Tdlib implements TdlibProvider, Settings.SettingsChangeListener, Da
     }
 
     // Anti-Delete Persistence
-    DeletedMessagesManager.getInstance().init(context());
+    DeletedMessagesManager.getInstance().init(UI.getAppContext());
     DeletedMessagesManager.getInstance().onMessagesDeleted(this, update.chatId, update.messageIds);
 
     Arrays.sort(update.messageIds);

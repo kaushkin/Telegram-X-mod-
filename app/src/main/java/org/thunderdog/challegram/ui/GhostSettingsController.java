@@ -40,15 +40,11 @@ public class GhostSettingsController extends ViewController<Void> implements Vie
 
     public GhostSettingsController (Context context, Tdlib tdlib) {
         super(context, tdlib);
+        setName("Настройки удаления");
     }
 
     public int getId() {
         return 199001;
-    }
-    
-    @Override
-    public CharSequence getTitle() {
-        return "Настройки удаления";
     }
 
     @Override
