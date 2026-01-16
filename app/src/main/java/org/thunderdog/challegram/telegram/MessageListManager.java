@@ -489,24 +489,30 @@ public final class MessageListManager extends ListManager<TdApi.Message> impleme
 
   @Override
   public void onMessagesDeleted (long chatId, long[] messageIds) {
-    android.util.Log.e("ANTIDELETE", "onMessagesDeleted: " + java.util.Arrays.toString(messageIds));
     if (this.chatId == chatId) {
       runOnUiThreadIfReady(() -> {
+        android.util.Log.e("ANTIDELETE", "Checking deletion for chat " + chatId);
+        android.util.Log.e("ANTIDELETE", "Items count: " + items.size());
+        if (!items.isEmpty()) {
+             android.util.Log.e("ANTIDELETE", "First item ID: " + items.get(0).id);
+             android.util.Log.e("ANTIDELETE", "Last item ID: " + items.get(items.size()-1).id);
+        }
+
         int removedCount = 0;
         for (long messageId : messageIds) {
           int index = indexOfMessage(messageId);
           if (index != -1) {
             TdApi.Message message = items.get(index);
-            android.util.Log.e("ANTIDELETE", "Saving message: " + message.id);
-            
+            android.util.Log.e("ANTIDELETE", "FOUND & SAVING: " + message.id);
             DeletedMessagesManager.getInstance().saveMessage(chatId, message);
 
-            // GHOST MODE: Do NOT remove from list
+            // GHOST: Keep it!
             // TdApi.Message message = items.remove(index);
             // onItemRemoved(message, index);
             // removedCount++;
           } else {
-            android.util.Log.e("ANTIDELETE", "Message not found in items: " + messageId);
+             android.util.Log.e("ANTIDELETE", "NOT FOUND: " + messageId);
+             // Dump IDs around this ID?
           }
         }
         changeTotalCount(-removedCount);
