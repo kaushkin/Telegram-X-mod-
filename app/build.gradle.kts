@@ -43,6 +43,12 @@ val config = extra["config"] as ApplicationConfig
 android {
   namespace = "org.thunderdog.challegram"
 
+  buildTypes {
+    getByName("debug") {
+      applicationIdSuffix = ".debug"
+    }
+  }
+
   lint {
     disable += "MissingTranslation"
     checkDependencies = true
