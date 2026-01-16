@@ -473,7 +473,7 @@ public abstract class TGMessage implements InvalidateContentProvider, TdlibDeleg
       // I'll try R.drawable.baseline_delete_14. 
       // If it fails, I'll use R.drawable.baseline_info_14 and tint it? 
       // Let's rely on standard naming.
-      .drawable(R.drawable.baseline_delete_14, 14f, 0f, Gravity.CENTER_HORIZONTAL)
+      .drawable(R.drawable.baseline_info_14, 14f, 0f, Gravity.CENTER_HORIZONTAL)
       .build();
     this.isGhost.showHide(isGhostMessage, false);
 
