@@ -42,7 +42,6 @@ public class GhostSettingsController extends ViewController<Void> implements Vie
         super(context, tdlib);
     }
 
-    @Override
     public int getId() {
         return 199001;
     }

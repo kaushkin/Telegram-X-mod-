@@ -42,7 +42,19 @@ public class DeletedMessagesManager {
         }
     }
 
+    private Context context;
     private SharedPreferences prefs;
+
+    public void updateMessageContent(long chatId, long messageId, TdApi.MessageContent content) {
+        TdApi.Message cached = messageCache.get(messageId);
+        if (cached != null && cached.chatId == chatId) {
+            cached.content = content;
+        }
+    }
+
+    public static DeletedMessagesManager getInstance() {
+        return INSTANCE;
+    }
 
     public void init(Context context) {
         this.context = context;
