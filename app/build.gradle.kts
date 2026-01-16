@@ -43,9 +43,22 @@ val config = extra["config"] as ApplicationConfig
 android {
   namespace = "org.thunderdog.challegram"
 
+  signingConfigs {
+    create("debug") {
+      storeFile = file("${System.getProperty("user.home")}/.android/debug.keystore")
+      storePassword = "android"
+      keyAlias = "androiddebugkey"
+      keyPassword = "android"
+      enableV2Signing = true
+      enableV3Signing = true
+      enableV4Signing = true
+    }
+  }
+
   buildTypes {
     getByName("debug") {
       applicationIdSuffix = ".debug"
+      signingConfig = signingConfigs.getByName("debug")
     }
   }
 
