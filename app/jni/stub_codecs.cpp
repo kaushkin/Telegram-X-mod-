@@ -19,10 +19,7 @@ struct H264ProfileLevelId {
     int level_idc;
 };
 
-// Assuming ScalabilityMode is an enum
-enum class ScalabilityMode {
-    kL1T1
-};
+
 
 // Environment dummy
 class Environment {};
