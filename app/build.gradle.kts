@@ -44,7 +44,7 @@ android {
   namespace = "org.thunderdog.challegram"
 
   signingConfigs {
-    create("debug") {
+    getByName("debug") {
       storeFile = file("${System.getProperty("user.home")}/.android/debug.keystore")
       storePassword = "android"
       keyAlias = "androiddebugkey"
