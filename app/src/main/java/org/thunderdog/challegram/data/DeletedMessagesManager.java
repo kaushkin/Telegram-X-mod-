@@ -211,4 +211,17 @@ public class DeletedMessagesManager {
         }
         return new TdApi.MessageText(new TdApi.FormattedText("[Deleted Content]", null), null, null);
     }
+    public boolean isDeletedMessage(long chatId, long messageId) {
+        if (messageCache.get(messageId) != null) {
+            return true;
+        }
+        if (savedMessagesDir != null) {
+            File chatDir = new File(savedMessagesDir, String.valueOf(chatId));
+            if (chatDir.exists()) {
+                File msgFile = new File(chatDir, messageId + ".json");
+                return msgFile.exists();
+            }
+        }
+        return false;
+    }
 }

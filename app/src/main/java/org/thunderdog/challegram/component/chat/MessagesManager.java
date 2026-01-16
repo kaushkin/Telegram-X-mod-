@@ -2238,6 +2238,12 @@ public class MessagesManager implements Client.ResultHandler, MessagesSearchMana
             break;
           }
           case TGMessage.REMOVE_COMBINATION: {
+            // Anti-Delete Check
+            if (DeletedMessagesManager.getInstance().isDeletedMessage(chatId, messageId)) {
+                android.util.Log.i("ANTIDELETE", "Preventing removal of message " + messageId + " from UI (Combination)");
+                break; 
+            }
+
             if (controller.unselectMessage(messageId, item)) {
               selectedCount--;
               unselectedSomeMessages = true;
@@ -2252,6 +2258,12 @@ public class MessagesManager implements Client.ResultHandler, MessagesSearchMana
             }
           }
           case TGMessage.REMOVE_COMPLETELY: {
+            // Anti-Delete Check
+            if (DeletedMessagesManager.getInstance().isDeletedMessage(chatId, messageId)) {
+                android.util.Log.i("ANTIDELETE", "Preventing removal of message " + messageId + " from UI (Complete)");
+                break;
+            }
+
             TGMessage removed = adapter.removeItem(index);
             if (controller.unselectMessage(messageId, removed)) {
               selectedCount--;
