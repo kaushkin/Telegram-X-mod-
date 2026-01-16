@@ -175,24 +175,7 @@ public class MessagesManager implements Client.ResultHandler, MessagesSearchMana
     return loader.getKnownTotalMessageCount();
   }
 
-  @Override
-  public void onMessagesDeleted(long chatId, long[] messageIds) {
-      if (adapter != null) {
-          ArrayList<TGMessage> items = adapter.getItems();
-          if (items != null) {
-              boolean invalidated = false;
-              for (TGMessage msg : items) {
-                  if (msg.getChatId() == chatId && ArrayUtils.contains(messageIds, msg.getId())) {
-                      msg.updateGhostState();
-                      invalidated = true;
-                  }
-              }
-              if (invalidated) {
-                  adapter.invalidateAllMessages();
-              }
-          }
-      }
-  }
+
 
   @Override
   public void onChatMemberStatusChange (long chatId, TdApi.ChatMember member) {
@@ -3587,6 +3570,22 @@ public class MessagesManager implements Client.ResultHandler, MessagesSearchMana
     tdlib.ui().post(() -> {
       if (loader.getChatId() == chatId) {
         updateMessagesDeleted(chatId, messageIds);
+      }
+      // Ghost Message Update Logic
+      if (adapter != null) {
+          ArrayList<TGMessage> items = adapter.getItems();
+          if (items != null) {
+              boolean invalidated = false;
+              for (TGMessage msg : items) {
+                  if (msg.getChatId() == chatId && ArrayUtils.contains(messageIds, msg.getId())) {
+                      msg.updateGhostState();
+                      invalidated = true;
+                  }
+              }
+              if (invalidated) {
+                  adapter.invalidateAllMessages();
+              }
+          }
       }
     });
   }
