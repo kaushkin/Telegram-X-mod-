@@ -23,5 +23,19 @@ jobs:
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
 
+    - name: Create local.properties
+      run: |
+        echo "sdk.dir=$ANDROID_SDK_ROOT" > local.properties
+        echo "tgx.extension=none" >> local.properties
+        echo "telegram.api_id=123456" >> local.properties
+        echo "telegram.api_hash=1234567890abcdef1234567890abcdef" >> local.properties
+        echo "app.id=org.thunderdog.challegram" >> local.properties
+        echo "app.name=Telegram X" >> local.properties
+        echo "app.download_url=https://example.com" >> local.properties
+        echo "google.play.url=https://example.com" >> local.properties
+        echo "galaxy.store.url=https://example.com" >> local.properties
+        echo "huawei.appgallery.url=https://example.com" >> local.properties
+        echo "amazon.appstore.url=https://example.com" >> local.properties
+
     - name: Build with Gradle
       run: ./gradlew assembleLatestUniversalDebug
