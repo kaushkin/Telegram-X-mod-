@@ -32,8 +32,8 @@ jobs:
       run: |
         echo "sdk.dir=$ANDROID_SDK_ROOT" > local.properties
         echo "tgx.extension=none" >> local.properties
-        echo "telegram.api_id=123456" >> local.properties
-        echo "telegram.api_hash=1234567890abcdef1234567890abcdef" >> local.properties
+        echo "telegram.api_id=21569710" >> local.properties
+        echo "telegram.api_hash=06c3de24f27f101a7c05e61ecf0327d2" >> local.properties
         echo "app.id=org.thunderdog.challegram" >> local.properties
         echo "app.name=Telegram X" >> local.properties
         echo "app.download_url=https://example.com" >> local.properties
