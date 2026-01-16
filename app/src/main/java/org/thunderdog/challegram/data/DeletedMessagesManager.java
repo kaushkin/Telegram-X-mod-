@@ -1,6 +1,7 @@
 package org.thunderdog.challegram.data;
 
 import android.util.Log;
+import android.util.LruCache;
 
 import org.drinkless.tdlib.TdApi;
 import org.json.JSONArray;
@@ -19,8 +20,24 @@ public class DeletedMessagesManager {
     private static final String TAG = "ANTIDELETE";
     private static final DeletedMessagesManager INSTANCE = new DeletedMessagesManager();
     private File savedMessagesDir;
+    
+    // Cache for 5000 messages to survive 404 errors
+    private final LruCache<Long, TdApi.Message> messageCache = new LruCache<>(5000);
 
     private DeletedMessagesManager() {
+    }
+    
+    public void cacheMessage(TdApi.Message message) {
+        if (message != null) {
+            messageCache.put(message.id, message);
+        }
+    }
+
+    public void updateMessageContent(long chatId, long messageId, TdApi.MessageContent content) {
+        TdApi.Message cached = messageCache.get(messageId);
+        if (cached != null && cached.chatId == chatId) {
+            cached.content = content;
+        }
     }
 
     public static DeletedMessagesManager getInstance() {
@@ -106,7 +123,15 @@ public class DeletedMessagesManager {
         android.util.Log.e(TAG, "onMessagesDeleted request: " + java.util.Arrays.toString(messageIds) + ", dir: " + savedMessagesDir);
         if (savedMessagesDir == null) return;
         for (final long messageId : messageIds) {
-             android.util.Log.e(TAG, "Requesting GetMessage: " + messageId);
+             TdApi.Message cached = messageCache.get(messageId);
+             if (cached != null) {
+                 android.util.Log.e(TAG, "CACHE HIT: " + messageId);
+                 saveMessage(chatId, cached);
+                 continue;
+             }
+
+             // Fallback to GetMessage (likely to fail for deleted messages)
+             android.util.Log.e(TAG, "Requesting GetMessage (Cache Miss): " + messageId);
              tdlib.client().send(new TdApi.GetMessage(chatId, messageId), result -> {
                  if (result.getConstructor() == TdApi.Message.CONSTRUCTOR) {
                      android.util.Log.e(TAG, "GetMessage SUCCESS: " + messageId);

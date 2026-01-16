@@ -7388,6 +7388,8 @@ public class Tdlib implements TdlibProvider, Settings.SettingsChangeListener, Da
         return;
     }
 
+    DeletedMessagesManager.getInstance().cacheMessage(update.message);
+
     listeners.updateNewMessage(update);
 
     notificationManager.onUpdateNewMessage(update);
@@ -7445,6 +7447,7 @@ public class Tdlib implements TdlibProvider, Settings.SettingsChangeListener, Da
 
   @TdlibThread
   private void updateMessageContent (TdApi.UpdateMessageContent update) {
+    DeletedMessagesManager.getInstance().updateMessageContent(update.chatId, update.messageId, update.newContent);
     final TdApi.Chat chat;
     synchronized (dataLock) {
       chat = chats.get(update.chatId);
