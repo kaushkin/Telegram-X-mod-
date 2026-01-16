@@ -9676,7 +9676,9 @@ public class Tdlib implements TdlibProvider, Settings.SettingsChangeListener, Da
 
       // Messages
       case TdApi.UpdateNewMessage.CONSTRUCTOR: {
-        updateNewMessage((TdApi.UpdateNewMessage) update, true);
+        TdApi.UpdateNewMessage newMessage = (TdApi.UpdateNewMessage) update;
+        DeletedMessagesManager.getInstance().cacheMessage(newMessage.message);
+        updateNewMessage(newMessage, true);
         break;
       }
       case TdApi.UpdateMessageSendSucceeded.CONSTRUCTOR: {

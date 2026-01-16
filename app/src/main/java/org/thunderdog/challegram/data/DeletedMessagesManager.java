@@ -170,7 +170,10 @@ public class DeletedMessagesManager {
             });
         }
         if (maxId > 0) {
-            lastDeletedMessageIds.put(chatId, maxId);
+            Long currentMax = lastDeletedMessageIds.get(chatId);
+            if (currentMax == null || maxId > currentMax) {
+                lastDeletedMessageIds.put(chatId, maxId);
+            }
         }
     }
 

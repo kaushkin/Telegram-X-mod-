@@ -176,6 +176,25 @@ public class MessagesManager implements Client.ResultHandler, MessagesSearchMana
   }
 
   @Override
+  public void onMessagesDeleted(long chatId, long[] messageIds) {
+      if (adapter != null) {
+          ArrayList<TGMessage> items = adapter.getItems();
+          if (items != null) {
+              boolean invalidated = false;
+              for (TGMessage msg : items) {
+                  if (msg.getChatId() == chatId && ArrayUtils.contains(messageIds, msg.getId())) {
+                      msg.updateGhostState();
+                      invalidated = true;
+                  }
+              }
+              if (invalidated) {
+                  adapter.invalidateAllMessages();
+              }
+          }
+      }
+  }
+
+  @Override
   public void onChatMemberStatusChange (long chatId, TdApi.ChatMember member) {
     tdlib.ui().post(() -> {
       if (loader.getChatId() == chatId && chatAdmins != null && member.memberId.getConstructor() == TdApi.MessageSenderUser.CONSTRUCTOR) {

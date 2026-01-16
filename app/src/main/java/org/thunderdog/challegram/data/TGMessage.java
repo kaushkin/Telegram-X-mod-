@@ -5228,9 +5228,17 @@ public abstract class TGMessage implements InvalidateContentProvider, TdlibDeleg
     return BitwiseUtils.hasFlag(flags, FLAG_BEING_ADDED);
   }
 
-  public final boolean isGhost() {
-    return isGhostMessage;
-  }
+    public void updateGhostState() {
+        boolean wasGhost = isGhostMessage;
+        isGhostMessage = DeletedMessagesManager.getInstance().isDeletedMessage(msg.chatId, msg.id);
+        if (wasGhost != isGhostMessage) {
+            isGhost.setCount(isGhostMessage ? 1 : 0, true);
+        }
+    }
+
+    public final boolean isGhost() {
+        return isGhostMessage;
+    }
 
   public boolean canMarkAsViewed () {
     return msg.id != 0 && msg.chatId != 0 && (flags & FLAG_VIEWED) == 0;
