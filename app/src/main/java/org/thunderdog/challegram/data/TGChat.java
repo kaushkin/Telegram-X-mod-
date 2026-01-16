@@ -1378,6 +1378,9 @@ public class TGChat implements TdlibStatusManager.HelperTarget, ContentPreview.R
 
     TdApi.Message msg = chat.lastMessage;
     if (msg != null) {
+      if (DeletedMessagesManager.getInstance().isDeletedMessage(msg.chatId, msg.id)) {
+        addIcon(R.drawable.baseline_info_14);
+      }
       flags |= FLAG_MESSAGE;
       // No need to check tdlib.chatRestrictionReason, because it's already handled above
       ContentPreview preview = ContentPreview.getChatListPreview(tdlib, msg.chatId, msg, false);

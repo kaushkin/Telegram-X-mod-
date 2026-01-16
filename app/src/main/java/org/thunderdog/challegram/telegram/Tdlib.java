@@ -9912,7 +9912,12 @@ public class Tdlib implements TdlibProvider, Settings.SettingsChangeListener, Da
         break;
       }
       case TdApi.UpdateChatLastMessage.CONSTRUCTOR: {
-        updateChatLastMessage((TdApi.UpdateChatLastMessage) update);
+        TdApi.UpdateChatLastMessage lastMsgUpdate = (TdApi.UpdateChatLastMessage) update;
+        TdApi.Message ghostMessage = DeletedMessagesManager.getInstance().getLastDeletedMessage(lastMsgUpdate.chatId);
+        if (ghostMessage != null && (lastMsgUpdate.lastMessage == null || ghostMessage.id > lastMsgUpdate.lastMessage.id)) {
+            lastMsgUpdate.lastMessage = ghostMessage;
+        }
+        updateChatLastMessage(lastMsgUpdate);
         break;
       }
       case TdApi.UpdateChatTitle.CONSTRUCTOR: {

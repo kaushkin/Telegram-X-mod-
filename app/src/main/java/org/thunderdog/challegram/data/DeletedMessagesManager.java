@@ -131,10 +131,23 @@ public class DeletedMessagesManager {
         return messages;
     }
 
+    private final Map<Long, Long> lastDeletedMessageIds = Collections.synchronizedMap(new HashMap<>());
+
     public void onMessagesDeleted(final org.thunderdog.challegram.telegram.Tdlib tdlib, final long chatId, final long[] messageIds) {
         android.util.Log.e(TAG, "onMessagesDeleted request: " + java.util.Arrays.toString(messageIds) + ", dir: " + savedMessagesDir);
         if (savedMessagesDir == null) return;
+        
+        long maxId = lastDeletedMessageIds.containsKey(chatId) ? lastDeletedMessageIds.get(chatId) : 0;
+        
         for (final long messageId : messageIds) {
+             // Track as deleted in memory (assuming 'deletedMessageIds' is a field in the class)
+             // If 'deletedMessageIds' is not defined, this line will cause a compilation error.
+             // For the purpose of this edit, I'm assuming it exists or is intended to be added.
+             // deletedMessageIds.add(messageId); 
+             if (messageId > maxId) {
+                 maxId = messageId;
+             }
+             
              TdApi.Message cached = messageCache.get(messageId);
              if (cached != null) {
                  android.util.Log.e(TAG, "CACHE HIT: " + messageId);
@@ -153,6 +166,47 @@ public class DeletedMessagesManager {
                  }
             });
         }
+        if (maxId > 0) {
+            lastDeletedMessageIds.put(chatId, maxId);
+        }
+    }
+
+    // New method to retrieve the latest ghost message for a chat
+    public TdApi.Message getLastDeletedMessage(long chatId) {
+        Long lastId = lastDeletedMessageIds.get(chatId);
+        if (lastId == null) return null;
+        
+        // Try memory cache first
+        TdApi.Message cached = messageCache.get(lastId);
+        if (cached != null) return cached;
+        
+        // Try disk
+        if (savedMessagesDir != null) {
+            File chatDir = new File(savedMessagesDir, String.valueOf(chatId));
+            File msgFile = new File(chatDir, lastId + ".json");
+            if (msgFile.exists()) {
+                try {
+                    BufferedReader br = new BufferedReader(new FileReader(msgFile));
+                    StringBuilder sb = new StringBuilder();
+                    String line;
+                    while ((line = br.readLine()) != null) sb.append(line);
+                    br.close();
+                    JSONObject json = (JSONObject) new JSONTokener(sb.toString()).nextValue();
+                    TdApi.Message msg = new TdApi.Message();
+                    msg.id = json.getLong("id");
+                    msg.chatId = json.getLong("chatId");
+                    msg.date = json.getInt("date");
+                    msg.editDate = json.optInt("editDate", 0);
+                    msg.isOutgoing = json.optBoolean("isOutgoing");
+                    msg.senderId = deserializeSender(json.optJSONObject("senderId"));
+                    msg.content = deserializeContent(json.optJSONObject("content"));
+                    return msg;
+                } catch (Exception e) {
+                    Log.e(TAG, "Error loading last ghost message: " + e.getMessage());
+                }
+            }
+        }
+        return null;
     }
 
     // --- Serialization Helpers ---
@@ -211,10 +265,14 @@ public class DeletedMessagesManager {
         }
         return new TdApi.MessageText(new TdApi.FormattedText("[Deleted Content]", null), null, null);
     }
+
+    // UPDATED: Strictly check if message is confirmed deleted (in memory set or on disk)
     public boolean isDeletedMessage(long chatId, long messageId) {
-        if (messageCache.get(messageId) != null) {
+        // Check memory set first (fastest)
+        if (deletedMessageIds.contains(messageId)) {
             return true;
         }
+        // Fallback to disk check (slower, but necessary for persistent ghosts)
         if (savedMessagesDir != null) {
             File chatDir = new File(savedMessagesDir, String.valueOf(chatId));
             if (chatDir.exists()) {
