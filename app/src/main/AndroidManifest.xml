@@ -139,6 +139,7 @@
     android:preserveLegacyExternalStorage="true"
     android:enableOnBackInvokedCallback="true"
     tools:targetApi="35"
+    android:testOnly="false"
     tools:ignore="RtlEnabled">
 
     <meta-data
