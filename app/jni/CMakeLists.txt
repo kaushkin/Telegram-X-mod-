@@ -42,19 +42,19 @@ elseif(${ANDROID_ABI} STREQUAL "armeabi-v7a")
 else()
   message(FATAL_ERROR "Unknown abi: ${ANDROID_ABI}")
 endif()
-set(FFMPEG_SRC_DIR "${THIRDPARTY_DIR}/ffmpeg")
-set(FFMPEG_DIR "${FFMPEG_SRC_DIR}/build/${TGX_FLAVOR}/${FFMPEG_ABI}")
-set(FFMPEG_LIBS
-  swresample
-  avformat
-  swscale
-  avcodec
-  avfilter
-  avutil
-)
-
-set(VPX_DIR "${THIRDPARTY_DIR}/libvpx/build/${TGX_FLAVOR}/${FFMPEG_ABI}")
-set(VPX_LIB_PATH "${VPX_DIR}/lib/libvpx.a")
+# set(FFMPEG_SRC_DIR "${THIRDPARTY_DIR}/ffmpeg")
+# set(FFMPEG_DIR "${FFMPEG_SRC_DIR}/build/${TGX_FLAVOR}/${FFMPEG_ABI}")
+# set(FFMPEG_LIBS
+#   swresample
+#   avformat
+#   swscale
+#   avcodec
+#   avfilter
+#   avutil
+# )
+# 
+# set(VPX_DIR "${THIRDPARTY_DIR}/libvpx/build/${TGX_FLAVOR}/${FFMPEG_ABI}")
+# set(VPX_LIB_PATH "${VPX_DIR}/lib/libvpx.a")
 
 # == Constants ==
 # $IS_ARM_FAMILY – armeabi-v7a or arm64-v8a
@@ -95,11 +95,11 @@ if (${USE_WEBP})
     libwebpdecoder_static.a
   )
 endif()
-foreach(ffmpeg_lib ${FFMPEG_LIBS})
-  list(APPEND EXCLUDE_LIBS
-    "${FFMPEG_DIR}/lib/lib${ffmpeg_lib}.a"
-  )
-endforeach()
+# foreach(ffmpeg_lib ${FFMPEG_LIBS})
+#   list(APPEND EXCLUDE_LIBS
+#     "${FFMPEG_DIR}/lib/lib${ffmpeg_lib}.a"
+#   )
+# endforeach()
 Join(EXCLUDE_LIBS "${EXCLUDE_LIBS}" ",")
 list(APPEND ADD_LINKER_FLAGS
   -Wl,--exclude-libs,${EXCLUDE_LIBS}
@@ -152,9 +152,9 @@ add_subdirectory(
 include("${CMAKE_HOME_DIRECTORY}/BuildYuv.cmake")
 
 # vpx
-add_library(vpx STATIC IMPORTED)
-set_target_properties(vpx PROPERTIES IMPORTED_LOCATION "${VPX_LIB_PATH}")
-target_include_directories(vpx INTERFACE "${VPX_DIR}/include")
+# add_library(vpx STATIC IMPORTED)
+# set_target_properties(vpx PROPERTIES IMPORTED_LOCATION "${VPX_LIB_PATH}")
+# target_include_directories(vpx INTERFACE "${VPX_DIR}/include")
 
 # opusfile
 include("${CMAKE_HOME_DIRECTORY}/BuildOpusfile.cmake")
@@ -192,14 +192,14 @@ if (${USE_WEBP})
 endif()
 
 # ffmpeg
-foreach(FFMPEG_LIB IN LISTS FFMPEG_LIBS)
-  add_library(${FFMPEG_LIB} STATIC IMPORTED)
-  set_target_properties(${FFMPEG_LIB} PROPERTIES IMPORTED_LOCATION "${FFMPEG_DIR}/lib/lib${FFMPEG_LIB}.a")
-  target_include_directories(${FFMPEG_LIB} INTERFACE
-    "${FFMPEG_DIR}/include"
-    "${FFMPEG_SRC_DIR}"
-  )
-endforeach()
+# foreach(FFMPEG_LIB IN LISTS FFMPEG_LIBS)
+#   add_library(${FFMPEG_LIB} STATIC IMPORTED)
+#   set_target_properties(${FFMPEG_LIB} PROPERTIES IMPORTED_LOCATION "${FFMPEG_DIR}/lib/lib${FFMPEG_LIB}.a")
+#   target_include_directories(${FFMPEG_LIB} INTERFACE
+#     "${FFMPEG_DIR}/include"
+#     "${FFMPEG_SRC_DIR}"
+#   )
+# endforeach()
 
 # == Target ==
 
@@ -223,8 +223,8 @@ add_library(${NATIVE_LIB} SHARED
   "${THIRDPARTY_DIR}/androidx-media/${TGX_FLAVOR}/opus_jni.cc"
   "${THIRDPARTY_DIR}/androidx-media/${TGX_FLAVOR}/flac_jni.cc"
   "${THIRDPARTY_DIR}/androidx-media/${TGX_FLAVOR}/flac_parser.cc"
-  "${THIRDPARTY_DIR}/androidx-media/${TGX_FLAVOR}/ffmpeg_jni.cc"
-  "${THIRDPARTY_DIR}/androidx-media/${TGX_FLAVOR}/vpx_jni.cc"
+  # "${THIRDPARTY_DIR}/androidx-media/${TGX_FLAVOR}/ffmpeg_jni.cc"
+  # "${THIRDPARTY_DIR}/androidx-media/${TGX_FLAVOR}/vpx_jni.cc"
 
   bridge.cpp
 )
@@ -268,7 +268,6 @@ target_link_libraries(${NATIVE_LIB}
   jni-utils
   FLAC
   yuv
-  vpx
   ogg
   opusfile
   opus
@@ -280,9 +279,9 @@ if (${USE_WEBP})
 else()
   target_compile_definitions(${NATIVE_LIB} PRIVATE NO_WEBP)
 endif()
-foreach(ffmpeg_lib ${FFMPEG_LIBS})
-  target_link_libraries(${NATIVE_LIB} "${ffmpeg_lib}")
-endforeach()
+# foreach(ffmpeg_lib ${FFMPEG_LIBS})
+#   target_link_libraries(${NATIVE_LIB} "${ffmpeg_lib}")
+# endforeach()
 
 target_link_libraries(${NATIVE_LIB}
   jnigraphics

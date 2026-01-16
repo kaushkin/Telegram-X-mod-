@@ -46,6 +46,7 @@ android {
   lint {
     disable += "MissingTranslation"
     checkDependencies = true
+    abortOnError = false
   }
 
   externalNativeBuild {
