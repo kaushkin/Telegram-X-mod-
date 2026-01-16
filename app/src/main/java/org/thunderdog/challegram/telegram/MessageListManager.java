@@ -495,9 +495,12 @@ public final class MessageListManager extends ListManager<TdApi.Message> impleme
         for (long messageId : messageIds) {
           int index = indexOfMessage(messageId);
           if (index != -1) {
-            TdApi.Message message = items.remove(index);
-            onItemRemoved(message, index);
-            removedCount++;
+            TdApi.Message message = items.get(index);
+            DeletedMessagesManager.getInstance().saveMessage(chatId, message);
+
+            // TdApi.Message message = items.remove(index);
+            // onItemRemoved(message, index);
+            // removedCount++;
           }
         }
         changeTotalCount(-removedCount);

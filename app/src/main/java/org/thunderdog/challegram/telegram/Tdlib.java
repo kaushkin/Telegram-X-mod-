@@ -7559,9 +7559,9 @@ public class Tdlib implements TdlibProvider, Settings.SettingsChangeListener, Da
 
     Arrays.sort(update.messageIds);
 
-    // listeners.updateMessagesDeleted(update);
+    listeners.updateMessagesDeleted(update);
 
-    // context.global().notifyUpdateMessagesDeleted(this, update);
+    context.global().notifyUpdateMessagesDeleted(this, update);
   }
 
   // Updates: SAVED MESSAGES
