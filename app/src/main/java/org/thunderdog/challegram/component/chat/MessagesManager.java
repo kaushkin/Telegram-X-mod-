@@ -38,6 +38,7 @@ import org.thunderdog.challegram.R;
 import org.thunderdog.challegram.config.Config;
 import org.thunderdog.challegram.core.Lang;
 import org.thunderdog.challegram.data.TD;
+import org.thunderdog.challegram.data.DeletedMessagesManager;
 import org.thunderdog.challegram.data.TGMessage;
 import org.thunderdog.challegram.data.TGMessageBotInfo;
 import org.thunderdog.challegram.data.TGMessageVideo;
