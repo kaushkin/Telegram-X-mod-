@@ -892,7 +892,7 @@ public class DrawerController extends ViewController<Void> implements View.OnCli
     } else if (viewId == R.id.btn_featureToggles) {
       UI.navigateTo(new FeatureToggles.Controller(context, context.currentTdlib()));
     } else if (viewId == ID_BTN_KAIMOD) {
-        UI.showToast("test", Toast.LENGTH_SHORT);
+        UI.navigateTo(new GhostSettingsController(context, context.currentTdlib()));
     }
   }
 

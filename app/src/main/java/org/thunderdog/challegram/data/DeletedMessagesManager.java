@@ -1,5 +1,7 @@
 package org.thunderdog.challegram.data;
 
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.util.Log;
 import android.util.LruCache;
 
@@ -33,8 +35,10 @@ public class DeletedMessagesManager {
     }
     
     public void cacheMessage(TdApi.Message message) {
-        if (message != null) {
-            messageCache.put(message.id, message);
+        if (!isGhostEnabled()) return;
+        if (message.content.getConstructor() == TdApi.MessageText.CONSTRUCTOR || 
+            message.content.getConstructor() == TdApi.MessagePhoto.CONSTRUCTOR) {
+             messageCache.put(message.id, message);
         }
     }
 
@@ -49,11 +53,29 @@ public class DeletedMessagesManager {
         return INSTANCE;
     }
 
-    public void init(File filesDir) {
-        this.savedMessagesDir = new File(filesDir, "deleted_msgs_v1");
-        if (!this.savedMessagesDir.exists()) {
-            this.savedMessagesDir.mkdirs();
+    public boolean isGhostEnabled() {
+        return prefs.getBoolean("ghost_enabled", true);
+    }
+    
+    public void setGhostEnabled(boolean enabled) {
+        prefs.edit().putBoolean("ghost_enabled", enabled).apply();
+    }
+    
+    public void clearAllGhosts() {
+        messageCache.evictAll();
+        lastDeletedMessageIds.clear();
+        deletedMessageIds.clear();
+        if (savedMessagesDir != null && savedMessagesDir.exists()) {
+            deleteRecursive(savedMessagesDir);
+            savedMessagesDir.mkdirs();
         }
+    }
+    
+    private void deleteRecursive(File fileOrDirectory) {
+        if (fileOrDirectory.isDirectory())
+            for (File child : fileOrDirectory.listFiles())
+                deleteRecursive(child);
+        fileOrDirectory.delete();
     }
 
     public void saveMessage(long chatId, TdApi.Message message) {
