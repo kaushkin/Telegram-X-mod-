@@ -84,7 +84,7 @@ set(ORIGINAL_CMAKE_ASM_FLAGS "${CMAKE_ASM_FLAGS}")
 set(EXCLUDE_LIBS
   libjni-utils.a
   libyuv.a
-  "${VPX_LIB_PATH}"
+#   "${VPX_LIB_PATH}"
   libopus.a
   libopusfile.a
   librlottie.a

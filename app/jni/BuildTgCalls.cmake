@@ -275,8 +275,8 @@ set(TGCALLS_EXCLUDE_LIBS
 list(APPEND TGCALLS_EXCLUDE_LIBS
   libyuv.a
   libopus.a
-  "${VPX_LIB_PATH}"
-  "${FFMPEG_DIR}/lib/libavcodec.a"
+#   "${VPX_LIB_PATH}"
+#   "${FFMPEG_DIR}/lib/libavcodec.a"
 )
 Join(TGCALLS_EXCLUDE_LIBS "${TGCALLS_EXCLUDE_LIBS}" ",")
 target_link_options(${TGCALLS_LIB} PUBLIC
