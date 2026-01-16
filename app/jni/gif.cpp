@@ -20,6 +20,7 @@
 #include <string>
 #include <utility>
 #include <rlottie.h>
+#ifdef USE_FFMPEG
 extern "C" {
 #include <libavformat/avformat.h>
 #include <libavutil/eval.h>
@@ -28,6 +29,7 @@ extern "C" {
 #include <libavcodec/avcodec.h>
 
 }
+#endif
 
 #include <lz4.h>
 #include <unistd.h>
@@ -36,10 +38,13 @@ extern "C" {
 #include "bridge.h"
 
 #define MAX_GIF_SIZE 920
+#ifdef USE_FFMPEG
 #define BITMAP_TARGET_FORMAT AV_PIX_FMT_RGBA
+#endif
 #define LOTTIE_CACHE_MAGIC 0xf0ebaef1
 #define LOTTIE_CACHE_MAGIC_REDUCED 0xf0ebaef2
 
+#ifdef USE_FFMPEG
 static const std::string av_make_error_str (int errnum) {
   char errbuf[AV_ERROR_MAX_STRING_SIZE];
   av_strerror(errnum, errbuf, AV_ERROR_MAX_STRING_SIZE);
@@ -48,6 +53,7 @@ static const std::string av_make_error_str (int errnum) {
 
 #undef av_err2str
 #define av_err2str(errnum) av_make_error_str(errnum).c_str()
+#endif
 
 struct LottieInfo {
   const std::string path;
@@ -86,6 +92,7 @@ struct LottieInfo {
   }
 };
 
+#ifdef USE_FFMPEG
 struct VideoInfo {
 
   const std::string path;
@@ -140,7 +147,9 @@ struct VideoInfo {
 
   AVPacket *packet = nullptr;
 };
+#endif
 
+#ifdef USE_FFMPEG
 int open_codec_context (int *stream_idx, AVCodecContext **dec_ctx, AVFormatContext *fmt_ctx, enum AVMediaType type) {
   int ret;
   AVStream *st;
@@ -190,9 +199,10 @@ int open_codec_context (int *stream_idx, AVCodecContext **dec_ctx, AVFormatConte
 
   return 0;
 }
+#endif
 
 JNI_FUNC(jlong, createDecoder, jstring src, jlongArray data, jdouble startMediaTimestamp) {
-
+#ifdef USE_FFMPEG
   VideoInfo *info = new VideoInfo(jni::from_jstring(env, src));
 
   int ret;
@@ -309,12 +319,17 @@ JNI_FUNC(jlong, createDecoder, jstring src, jlongArray data, jdouble startMediaT
   //LOGD("successfully opened file %s", info->src);
 
   return jni::ptr_to_jlong(info);
+#else
+  return 0;
+#endif
 }
 
 JNI_FUNC(void, destroyDecoder, jlong ptr) {
   if (ptr != 0) {
+#ifdef USE_FFMPEG
     VideoInfo *info = jni::jlong_to_ptr<VideoInfo *>(ptr);
     delete info;
+#endif
   }
 }
 
@@ -329,6 +344,7 @@ JNI_FUNC(jboolean, destroyLottieDecoder, jlong ptr) {
 }
 
 JNI_FUNC(jboolean, seekVideoToStart, jlong ptr) {
+#ifdef USE_FFMPEG
   if (ptr == 0) {
     return JNI_FALSE;
   }
@@ -347,9 +363,13 @@ JNI_FUNC(jboolean, seekVideoToStart, jlong ptr) {
   }
   avcodec_flush_buffers(info->video_dec_ctx);
   return JNI_TRUE;
+#else
+  return JNI_FALSE;
+#endif
 }
 
 JNI_FUNC(jboolean, isVideoBroken, jlong ptr) {
+#ifdef USE_FFMPEG
   if (ptr == 0) {
     return JNI_FALSE;
   }
@@ -359,8 +379,12 @@ JNI_FUNC(jboolean, isVideoBroken, jlong ptr) {
   } else {
     return JNI_FALSE;
   }
+#else
+  return JNI_FALSE;
+#endif
 }
 
+#ifdef USE_FFMPEG
 void to_android_bitmap (JNIEnv *env, VideoInfo *info, jobject bitmap, jlongArray data) {
   auto fmt = (AVPixelFormat) info->frame->format;
 
@@ -432,8 +456,10 @@ void to_android_bitmap (JNIEnv *env, VideoInfo *info, jobject bitmap, jlongArray
     }
   }
 }
+#endif
 
 JNI_FUNC(jint, getVideoFrame, jlong ptr, jobject bitmap, jlongArray data) {
+#ifdef USE_FFMPEG
   if (ptr == 0 || bitmap == nullptr) {
     return 0;
   }
@@ -565,6 +591,9 @@ JNI_FUNC(jint, getVideoFrame, jlong ptr, jobject bitmap, jlongArray data) {
   }
 
   return 0;
+#else
+  return 0;
+#endif
 }
 
 JNI_FUNC(void, cancelLottieDecoder, jlong ptr) {
