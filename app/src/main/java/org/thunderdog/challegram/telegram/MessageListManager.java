@@ -18,6 +18,7 @@ import androidx.annotation.UiThread;
 import org.drinkless.tdlib.Client;
 import org.drinkless.tdlib.TdApi;
 import org.thunderdog.challegram.Log;
+import org.thunderdog.challegram.data.DeletedMessagesManager;
 import org.thunderdog.challegram.data.TD;
 
 import java.util.ArrayList;
@@ -252,6 +253,21 @@ public final class MessageListManager extends ListManager<TdApi.Message> impleme
       default:
         throw new UnsupportedOperationException(response.toString());
     }
+
+    // Inject Ghost Messages (Anti-Delete)
+    List<TdApi.Message> ghosts = DeletedMessagesManager.getInstance().getDeletedMessages(chatId);
+    if (!ghosts.isEmpty()) {
+        if (messages.isEmpty()) {
+             messages = new ArrayList<>(ghosts);
+        } else {
+             List<TdApi.Message> merged = new ArrayList<>(messages);
+             merged.addAll(ghosts);
+             messages = merged;
+        }
+        Collections.sort(messages, this);
+        totalCount += ghosts.size();
+    }
+
     if (!hasFilter() && messages.isEmpty()) {
       if (reverse) {
         onlyLocalReverseEndReached = true;

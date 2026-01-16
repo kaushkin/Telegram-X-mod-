@@ -89,6 +89,8 @@ import org.thunderdog.challegram.voip.annotation.CallState;
 import java.io.File;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
+
+import org.thunderdog.challegram.data.DeletedMessagesManager;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -283,6 +285,9 @@ public class Tdlib implements TdlibProvider, Settings.SettingsChangeListener, Da
         }
       }
       tdlib.context.modifyClient(tdlib, client);
+      
+      DeletedMessagesManager.getInstance().init(new File(tdlib.parameters.filesDirectory));
+
       this.resources = new TdlibResourceManager(tdlib, BuildConfig.TELEGRAM_RESOURCES_CHANNEL);
       this.updates = new TdlibResourceManager(tdlib, BuildConfig.TELEGRAM_UPDATES_CHANNEL);
       if (!tdlib.inRecoveryMode()) {
@@ -7547,6 +7552,10 @@ public class Tdlib implements TdlibProvider, Settings.SettingsChangeListener, Da
     if (update.fromCache) {
       return;
     }
+
+    // Anti-Delete Persistence
+    DeletedMessagesManager.getInstance().init(new File(parameters.filesDirectory));
+    DeletedMessagesManager.getInstance().onMessagesDeleted(this, update.chatId, update.messageIds);
 
     Arrays.sort(update.messageIds);
 
