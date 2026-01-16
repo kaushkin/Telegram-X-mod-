@@ -49,9 +49,13 @@ jint JNI_OnLoad (JavaVM *vm, void *reserved) {
       return -1;
   }*/
 
+#ifdef USE_FFMPEG
   ffmpeg_jni_OnLoad(vm, env);
+#endif
   opus_jni_OnLoad(vm, env);
+#ifdef USE_FFMPEG
   vpx_jni_OnLoad(vm, env);
+#endif
 
   return JNI_VERSION_1_6;
 }
