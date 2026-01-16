@@ -82,7 +82,7 @@ public class DeletedMessagesManager {
                 while ((line = br.readLine()) != null) sb.append(line);
                 br.close();
 
-                JSONObject json = new JSONTokener(sb.toString()).nextValue();
+                JSONObject json = (JSONObject) new JSONTokener(sb.toString()).nextValue();
                 TdApi.Message msg = new TdApi.Message();
                 msg.id = json.getLong("id");
                 msg.chatId = json.getLong("chatId");
@@ -157,16 +157,16 @@ public class DeletedMessagesManager {
     }
 
     private TdApi.MessageContent deserializeContent(JSONObject json) {
-        if (json == null) return new TdApi.MessageText(new TdApi.FormattedText("Deleted Message (Error)", null), null);
+        if (json == null) return new TdApi.MessageText(new TdApi.FormattedText("Deleted Message (Error)", null), null, null);
         String type = json.optString("type");
         if ("text".equals(type)) {
-            return new TdApi.MessageText(new TdApi.FormattedText(json.optString("text"), null), null);
+            return new TdApi.MessageText(new TdApi.FormattedText(json.optString("text"), null), null, null);
         } else if ("photo".equals(type)) {
             // Return a placeholder for photo
-             return new TdApi.MessageText(new TdApi.FormattedText("[Deleted Photo] " + json.optString("caption"), null), null);
+             return new TdApi.MessageText(new TdApi.FormattedText("[Deleted Photo] " + json.optString("caption"), null), null, null);
         } else if ("video".equals(type)) {
-             return new TdApi.MessageText(new TdApi.FormattedText("[Deleted Video] " + json.optString("caption"), null), null);
+             return new TdApi.MessageText(new TdApi.FormattedText("[Deleted Video] " + json.optString("caption"), null), null, null);
         }
-        return new TdApi.MessageText(new TdApi.FormattedText("[Deleted Content]", null), null);
+        return new TdApi.MessageText(new TdApi.FormattedText("[Deleted Content]", null), null, null);
     }
 }
