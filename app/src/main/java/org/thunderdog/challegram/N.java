@@ -150,10 +150,10 @@ public final class N {
     // Crashes if any of the libraries were not properly loaded
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
       OpusLibrary.setLibraries(C.CRYPTO_TYPE_UNSUPPORTED);
-      VpxLibrary.setLibraries(C.CRYPTO_TYPE_UNSUPPORTED);
+      // VpxLibrary.setLibraries(C.CRYPTO_TYPE_UNSUPPORTED);
       FlacLibrary.setLibraries();
-      FfmpegLibrary.setLibraries();
-      if (BuildConfig.DEBUG) {
+      // FfmpegLibrary.setLibraries();
+      /*if (BuildConfig.DEBUG) {
         android.util.Log.v("tgx", String.format(Locale.US,
           "leveldb %s, libopus %s, libvpx %s, ffmpeg %s, tgvoip %s, tgcalls %s",
           LevelDB.getVersion(),
@@ -164,7 +164,7 @@ public final class N {
           TextUtils.join("+", N.getTgCallsVersions())
         ));
         VideoCodecInfo[] softwareVideoCodecs = new SoftwareVideoEncoderFactory().getSupportedCodecs();
-      }
+      }*/
     }
   }
 }
