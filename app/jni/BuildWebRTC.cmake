@@ -2405,7 +2405,9 @@ add_library(webrtc STATIC
   "${WEBRTC_DIR}/modules/congestion_controller/goog_cc/loss_based_bwe_v2.cc"
   "${WEBRTC_DIR}/system_wrappers/source/denormal_disabler.cc"
   "${WEBRTC_DIR}/api/video_codecs/vp9_profile.cc"
-  "${WEBRTC_DIR}/api/video_codecs/h264_profile_level_id.cc"
+  "${WEBRTC_DIR}/api/video_codecs/vp9_profile.cc"
+  # "${WEBRTC_DIR}/api/video_codecs/h264_profile_level_id.cc"
+  "${WEBRTC_DIR}/modules/remote_bitrate_estimator/packet_arrival_map.cc"
   "${WEBRTC_DIR}/modules/remote_bitrate_estimator/packet_arrival_map.cc"
   "${WEBRTC_DIR}/modules/rtp_rtcp/source/capture_clock_offset_updater.cc"
   "${WEBRTC_DIR}/pc/video_track_source_proxy.cc"
@@ -2673,7 +2675,9 @@ set(WEBRTC_OPTIONS
   WEBRTC_POSIX
   WEBRTC_LINUX
   WEBRTC_ANDROID
-  WEBRTC_USE_H264
+  WEBRTC_ANDROID
+  # WEBRTC_USE_H264
+  NDEBUG
   NDEBUG
   WEBRTC_HAVE_USRSCTP
   WEBRTC_HAVE_DCSCTP
@@ -2767,10 +2771,10 @@ target_link_libraries(webrtc PUBLIC
   srtp
   openh264
   absl
-  avcodec
+  # avcodec
   yuv
   opus
-  vpx
+  # vpx
 )
 
 target_include_directories(webrtc PRIVATE
