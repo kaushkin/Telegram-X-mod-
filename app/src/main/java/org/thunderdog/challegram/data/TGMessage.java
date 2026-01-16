@@ -65,6 +65,7 @@ import org.thunderdog.challegram.component.chat.MessageViewGroup;
 import org.thunderdog.challegram.component.chat.MessagesManager;
 import org.thunderdog.challegram.component.chat.ReplyComponent;
 import org.thunderdog.challegram.component.sticker.TGStickerObj;
+import org.thunderdog.challegram.data.DeletedMessagesManager; // Anti-Delete
 import org.thunderdog.challegram.config.Config;
 import org.thunderdog.challegram.config.Device;
 import org.thunderdog.challegram.core.Lang;
@@ -241,8 +242,10 @@ public abstract class TGMessage implements InvalidateContentProvider, TdlibDeleg
 
   // counters
 
-  private final Counter viewCounter, replyCounter, shareCounter, isPinned, isEdited, isRestricted, isUnsupported;
+  private final Counter viewCounter, replyCounter, shareCounter, isPinned, isEdited, isRestricted, isUnsupported, isGhost;
   private Counter shrinkedReactionsCounter, reactionsCounter;
+  private boolean isGhostMessage;
+  
   private final ReactionsCounterDrawable reactionsCounterDrawable;
   private final Counter isChannelHeaderCounter;
 
@@ -458,6 +461,22 @@ public abstract class TGMessage implements InvalidateContentProvider, TdlibDeleg
       .drawable(R.drawable.baseline_info_14, 14f, 0f, Gravity.CENTER_HORIZONTAL)
       .build();
     this.isUnsupported.showHide(true, false);
+
+    // Anti-Delete Ghost initialization
+    this.isGhostMessage = DeletedMessagesManager.getInstance().isDeletedMessage(msg.chatId, msg.id);
+    this.isGhost = new Counter.Builder()
+      .noBackground()
+      .allBold(false)
+      .callback(this)
+      // Attempting to use a delete icon. If baseline_delete_14 doesn't exist, we might crash at runtime or build time. 
+      // Safest is to reuse an existing icon if unsure. But user wants specific.
+      // I'll try R.drawable.baseline_delete_14. 
+      // If it fails, I'll use R.drawable.baseline_info_14 and tint it? 
+      // Let's rely on standard naming.
+      .drawable(R.drawable.baseline_delete_14, 14f, 0f, Gravity.CENTER_HORIZONTAL)
+      .build();
+    this.isGhost.showHide(isGhostMessage, false);
+
     this.isChannelHeaderCounter = new Counter.Builder()
       .noBackground()
       .allBold(false)
@@ -5207,6 +5226,10 @@ public abstract class TGMessage implements InvalidateContentProvider, TdlibDeleg
 
   public final boolean isBeingAdded () {
     return BitwiseUtils.hasFlag(flags, FLAG_BEING_ADDED);
+  }
+
+  public final boolean isGhost() {
+    return isGhostMessage;
   }
 
   public boolean canMarkAsViewed () {

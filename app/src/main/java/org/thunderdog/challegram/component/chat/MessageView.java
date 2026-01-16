@@ -426,7 +426,21 @@ public class MessageView extends SparseDrawableView implements Destroyable, Draw
 
   @Override
   public void onDraw (Canvas c) {
+    int saveCount = 0;
+    if (msg != null && msg.isGhost()) {
+        // Apply 50% opacity to ghost messages
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            saveCount = c.saveLayerAlpha(0f, 0f, getWidth(), getHeight(), 128);
+        } else {
+            saveCount = c.saveLayerAlpha(0f, 0f, getWidth(), getHeight(), 128, Canvas.ALL_SAVE_FLAG);
+        }
+    }
+    
     msg.draw(this, c, avatarReceiver, replyReceiver, replyTextMediaReceiver, previewReceiver, contentReceiver, gifReceiver, complexReceiver);
+    
+    if (saveCount > 0) {
+        c.restoreToCount(saveCount);
+    }
   }
 
   public AvatarReceiver getAvatarReceiver () {
