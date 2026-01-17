@@ -602,8 +602,11 @@ public class DeletedMessagesManager { // Sync fix
                  f.size = f.local.downloadedSize;
                  
                  // Use saved dimensions or safe default (fixes crash)
-                 int w = json.optInt("width", 512);
-                 int h = json.optInt("height", 512);
+                 int w = json.optInt("width");
+                 int h = json.optInt("height");
+                 if (w <= 0) w = 512;
+                 if (h <= 0) h = 512;
+                 
                  sizes[0] = new TdApi.PhotoSize("x", f, w, h, new int[0]);
                  TdApi.Photo photo = new TdApi.Photo();
                  photo.sizes = sizes;
@@ -625,8 +628,10 @@ public class DeletedMessagesManager { // Sync fix
                  
                  TdApi.Video video = new TdApi.Video();
                  video.video = f;
-                 video.width = json.optInt("width", 512);
-                 video.height = json.optInt("height", 512);
+                 int w = json.optInt("width");
+                 int h = json.optInt("height");
+                 video.width = w > 0 ? w : 512;
+                 video.height = h > 0 ? h : 512;
                  video.fileName = "deleted_video.mp4";
                  
                  TdApi.MessageVideo content = new TdApi.MessageVideo();
