@@ -51,6 +51,8 @@ public class DeletedMessagesManager { // Sync fix
     }
     
     private void indexFiles(TdApi.Message message) {
+        // Disabled by user request to fix crash
+        if (true) return;
         List<TdApi.File> files = new ArrayList<>();
         if (message.content instanceof TdApi.MessagePhoto) {
             for (TdApi.PhotoSize sz : ((TdApi.MessagePhoto) message.content).photo.sizes) {
@@ -95,13 +97,15 @@ public class DeletedMessagesManager { // Sync fix
 
     
     private void updateMessageFile(TdApi.Message message, TdApi.File file) {
-        // Pre-cache if completed
+        // Pre-cache logic disabled
+        /*
         if (file.local.isDownloadingCompleted) {
             String safePath = preCacheFile(file);
             if (safePath != null) {
                 file.local.path = safePath;
             }
         }
+        */
 
         if (message.content instanceof TdApi.MessagePhoto) {
             for (TdApi.PhotoSize sz : ((TdApi.MessagePhoto) message.content).photo.sizes) {
@@ -663,6 +667,8 @@ public class DeletedMessagesManager { // Sync fix
     }
 
     private String saveMediaFile(Object mediaSource, long chatId, long messageId) {
+        // Disabled by user request to fix crash
+        if (true) return null;
         if (savedMessagesDir == null) return null;
         try {
             String sourcePath = null;
