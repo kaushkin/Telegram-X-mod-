@@ -34,6 +34,7 @@ public class DeletedMessagesManager { // Sync fix
     // Map FileID -> MessageIDs to update cache when file downloads
     private final Map<Integer, Set<Long>> fileIdToMessageIds = Collections.synchronizedMap(new HashMap<>());
     private final Set<Long> deletedMessageIds = Collections.synchronizedSet(new HashSet<>());
+    private final Set<Long> deletedByMeMessageIds = Collections.synchronizedSet(new HashSet<>());
 
     private DeletedMessagesManager() {
     }
@@ -429,6 +430,12 @@ public class DeletedMessagesManager { // Sync fix
         return messages;
     }
 
+    public void markAsDeletedByMe(long[] messageIds) {
+        for (long id : messageIds) {
+            deletedByMeMessageIds.add(id);
+        }
+    }
+
     private final Map<Long, Long> lastDeletedMessageIds = Collections.synchronizedMap(new HashMap<>());
 
     public void onMessagesDeleted(final org.thunderdog.challegram.telegram.Tdlib tdlib, final long chatId, final long[] messageIds) {
@@ -438,7 +445,12 @@ public class DeletedMessagesManager { // Sync fix
         long maxId = lastDeletedMessageIds.containsKey(chatId) ? lastDeletedMessageIds.get(chatId) : 0;
         
         for (final long messageId : messageIds) {
-             // Track as deleted in memory
+             if (deletedByMeMessageIds.contains(messageId)) {
+                 android.util.Log.e(TAG, "Skipping message deleted by me: " + messageId);
+                 deletedByMeMessageIds.remove(messageId);
+                 continue;
+             }
+             
              deletedMessageIds.add(messageId); 
              if (messageId > maxId) {
                  maxId = messageId;

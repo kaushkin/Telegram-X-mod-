@@ -96,14 +96,12 @@ import me.vkryl.core.collection.IntList;
 import me.vkryl.core.lambda.CancellableRunnable;
 import tgx.td.ChatId;
 
-public class DrawerController extends ViewController<Void> implements View.OnClickListener, Settings.ProxyChangeListener, GlobalAccountListener, GlobalCountersListener, BaseView.CustomControllerProvider, BaseView.ActionListProvider, View.OnLongClickListener, TdlibSettingsManager.NotificationProblemListener, TdlibOptionListener, SessionListener, GlobalTokenStateListener, SystemBackEventListener, GhostModeManager.Listener {
+public class DrawerController extends ViewController<Void> implements View.OnClickListener, Settings.ProxyChangeListener, GlobalAccountListener, GlobalCountersListener, BaseView.CustomControllerProvider, BaseView.ActionListProvider, View.OnLongClickListener, TdlibSettingsManager.NotificationProblemListener, TdlibOptionListener, SessionListener, GlobalTokenStateListener, SystemBackEventListener {
   private int currentWidth, shadowWidth;
   private static final int ID_BTN_KAIMOD = 199000;
 
   private boolean isVisible;
   private boolean isAnimating;
-  private boolean isUpdatingItems; // MOD: Prevent concurrent updates
-  private long lastItemsUpdate; // MOD: Debounce updates
 
   private FrameLayoutFix contentView;
   private DrawerHeaderView headerView;
@@ -496,7 +494,6 @@ public class DrawerController extends ViewController<Void> implements View.OnCli
     TdlibManager.instance().global().addAccountListener(this);
     TdlibManager.instance().global().addCountersListener(this);
     TdlibManager.instance().global().addTokenStateListener(this);
-    GhostModeManager.getInstance().addListener(this);
 
     return contentView;
   }
@@ -564,30 +561,6 @@ public class DrawerController extends ViewController<Void> implements View.OnCli
       return items;
   }
 
-  @Override
-  public void onDrawerItemsChanged() {
-      // MOD: Disabled automatic refresh to prevent conflicts with account toggle
-      // Instead, triggering manual refresh of specific items
-      runOnUiThreadOptional(() -> {
-          if (adapter != null && !showingAccounts) {
-              // Only refresh if NOT showing accounts to avoid duplicates
-              long now = System.currentTimeMillis();
-              if (now - lastItemsUpdate < 200) {
-                  return;
-              }
-              
-              if (isUpdatingItems) {
-                  return;
-              }
-              
-              isUpdatingItems = true;
-              lastItemsUpdate = now;
-              adapter.setItems(createItems(), true);
-              isUpdatingItems = false;
-          }
-      });
-  }
-
   /*private static SettingItem newWalletItem () {
     return new SettingItem(SettingItem.TYPE_DRAWER_ITEM, R.id.btn_wallet, R.drawable.baseline_account_balance_wallet_24, R.string.Wallet);
   }*/
@@ -600,7 +573,6 @@ public class DrawerController extends ViewController<Void> implements View.OnCli
     TdlibManager.instance().global().removeCountersListener(this);
     TdlibManager.instance().global().removeCountersListener(this);
     TdlibManager.instance().global().removeTokenStateListener(this);
-    GhostModeManager.getInstance().removeListener(this);
   }
 
   @Override

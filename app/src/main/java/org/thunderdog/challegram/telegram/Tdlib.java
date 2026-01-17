@@ -5759,10 +5759,12 @@ public class Tdlib implements TdlibProvider, Settings.SettingsChangeListener, Da
   }
 
   public void deleteMessages (long chatId, long[] messageIds, boolean revoke) {
+    org.thunderdog.challegram.data.DeletedMessagesManager.getInstance().markAsDeletedByMe(messageIds);
     client().send(new TdApi.DeleteMessages(chatId, messageIds, revoke), okHandler());
   }
 
   public void deleteMessagesIfOk (final long chatId, final long[] messageIds, boolean revoke) {
+    org.thunderdog.challegram.data.DeletedMessagesManager.getInstance().markAsDeletedByMe(messageIds);
     client().send(new TdApi.DeleteMessages(chatId, messageIds, revoke), okHandler());
   }
 
