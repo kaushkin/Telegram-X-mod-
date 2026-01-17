@@ -3896,7 +3896,10 @@ public class Tdlib implements TdlibProvider, Settings.SettingsChangeListener, Da
         }
       }
       if (!hasPasscode(chat) && chat.lastMessage != null) {
-        client().send(new TdApi.ViewMessages(chatId, new long[] {chat.lastMessage.id}, source, true), okHandler(after));
+        // Ghost Mode: Block read receipts if enabled
+        if (!GhostModeManager.getInstance().shouldBlockReadReceipt()) {
+          client().send(new TdApi.ViewMessages(chatId, new long[] {chat.lastMessage.id}, source, true), okHandler(after));
+        }
       }
     }
   }

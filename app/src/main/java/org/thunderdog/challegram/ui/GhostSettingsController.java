@@ -71,21 +71,31 @@ public class GhostSettingsController extends ViewController<Void> implements Vie
             @Override
             protected void setValuedSetting (ListItem item, SettingView view, boolean isUpdate) {
                 final int itemId = item.getId();
+                boolean ghostEnabled = GhostModeManager.getInstance().isGhostModeEnabled();
+                
                 // Ghost Messages settings
                 if (itemId == ID_ENABLE_GHOST_MESSAGES) {
                     view.getToggler().setRadioEnabled(DeletedMessagesManager.getInstance().isGhostEnabled(), isUpdate);
                 } else if (itemId == ID_ENABLE_EDIT_HISTORY) {
                     view.getToggler().setRadioEnabled(DeletedMessagesManager.getInstance().isEditHistoryEnabled(), isUpdate);
                 }
-                // Ghost Mode settings
+                // Ghost Mode main toggle
                 else if (itemId == ID_GHOST_MODE) {
-                    view.getToggler().setRadioEnabled(GhostModeManager.getInstance().isGhostModeEnabled(), isUpdate);
-                } else if (itemId == ID_DONT_READ) {
-                    view.getToggler().setRadioEnabled(GhostModeManager.getInstance().isDontReadEnabled(), isUpdate);
+                    view.getToggler().setRadioEnabled(ghostEnabled, isUpdate);
+                }
+                // Ghost Mode sub-settings - only enabled when ghost mode is on
+                else if (itemId == ID_DONT_READ) {
+                    view.getToggler().setRadioEnabled(ghostEnabled && GhostModeManager.getInstance().isDontReadEnabled(), isUpdate);
+                    view.setEnabled(ghostEnabled);
+                    view.setAlpha(ghostEnabled ? 1.0f : 0.5f);
                 } else if (itemId == ID_DONT_TYPE) {
-                    view.getToggler().setRadioEnabled(GhostModeManager.getInstance().isDontTypeEnabled(), isUpdate);
+                    view.getToggler().setRadioEnabled(ghostEnabled && GhostModeManager.getInstance().isDontTypeEnabled(), isUpdate);
+                    view.setEnabled(ghostEnabled);
+                    view.setAlpha(ghostEnabled ? 1.0f : 0.5f);
                 } else if (itemId == ID_READ_ON_INTERACT) {
-                    view.getToggler().setRadioEnabled(GhostModeManager.getInstance().isReadOnInteractEnabled(), isUpdate);
+                    view.getToggler().setRadioEnabled(ghostEnabled && GhostModeManager.getInstance().isReadOnInteractEnabled(), isUpdate);
+                    view.setEnabled(ghostEnabled);
+                    view.setAlpha(ghostEnabled ? 1.0f : 0.5f);
                 }
             }
         };
@@ -99,18 +109,14 @@ public class GhostSettingsController extends ViewController<Void> implements Vie
         
         items.add(new ListItem(ListItem.TYPE_RADIO_SETTING, ID_GHOST_MODE, R.drawable.baseline_visibility_24, "Включить режим призрака"));
         
-        items.add(new ListItem(ListItem.TYPE_SHADOW_BOTTOM));
-        items.add(new ListItem(ListItem.TYPE_DESCRIPTION, 0, 0, "Главный переключатель режима призрака. Включите, чтобы активировать настройки ниже."));
-        
-        // Ghost Mode sub-settings
-        items.add(new ListItem(ListItem.TYPE_SHADOW_TOP));
+        items.add(new ListItem(ListItem.TYPE_SEPARATOR_FULL));
         
         items.add(new ListItem(ListItem.TYPE_RADIO_SETTING, ID_DONT_READ, R.drawable.baseline_done_all_24, "Не читать сообщения"));
         items.add(new ListItem(ListItem.TYPE_RADIO_SETTING, ID_DONT_TYPE, R.drawable.baseline_keyboard_24, "Не отправлять «печатает»"));
         items.add(new ListItem(ListItem.TYPE_RADIO_SETTING, ID_READ_ON_INTERACT, R.drawable.baseline_gesture_24, "Читать при действиях"));
         
         items.add(new ListItem(ListItem.TYPE_SHADOW_BOTTOM));
-        items.add(new ListItem(ListItem.TYPE_DESCRIPTION, 0, 0, "«Читать при действиях» - отправлять прочтение при ответе на сообщение или реакции."));
+        items.add(new ListItem(ListItem.TYPE_DESCRIPTION, 0, 0, "Режим призрака скрывает статусы прочтения и набора текста."));
         
         // ========== SAVED MESSAGES SECTION ==========
         items.add(new ListItem(ListItem.TYPE_HEADER, 0, 0, "Удаленные сообщения"));
@@ -140,10 +146,17 @@ public class GhostSettingsController extends ViewController<Void> implements Vie
 
         return recyclerView;
     }
+    
+    private void updateGhostSubSettings() {
+        adapter.updateValuedSettingById(ID_DONT_READ);
+        adapter.updateValuedSettingById(ID_DONT_TYPE);
+        adapter.updateValuedSettingById(ID_READ_ON_INTERACT);
+    }
 
     @Override
     public void onClick(View v) {
         final int id = v.getId();
+        boolean ghostEnabled = GhostModeManager.getInstance().isGhostModeEnabled();
         
         // Ghost Messages settings
         if (id == ID_ENABLE_GHOST_MESSAGES) {
@@ -159,25 +172,47 @@ public class GhostSettingsController extends ViewController<Void> implements Vie
             UI.showToast("История очищена", Toast.LENGTH_SHORT);
         }
         
-        // Ghost Mode settings
+        // Ghost Mode main toggle
         else if (id == ID_GHOST_MODE) {
-            boolean newState = !GhostModeManager.getInstance().isGhostModeEnabled();
+            boolean newState = !ghostEnabled;
             GhostModeManager.getInstance().setGhostModeEnabled(newState);
-            adapter.updateValuedSettingById(ID_GHOST_MODE);
+            
+            // When turning ON, enable all sub-settings automatically
             if (newState) {
+                GhostModeManager.getInstance().setDontReadEnabled(true);
+                GhostModeManager.getInstance().setDontTypeEnabled(true);
+                GhostModeManager.getInstance().setReadOnInteractEnabled(true);
                 UI.showToast("Режим призрака включен 👻", Toast.LENGTH_SHORT);
             } else {
                 UI.showToast("Режим призрака выключен", Toast.LENGTH_SHORT);
             }
-        } else if (id == ID_DONT_READ) {
+            
+            adapter.updateValuedSettingById(ID_GHOST_MODE);
+            updateGhostSubSettings();
+        }
+        
+        // Ghost Mode sub-settings - only work when ghost mode is enabled
+        else if (id == ID_DONT_READ) {
+            if (!ghostEnabled) {
+                UI.showToast("Сначала включите режим призрака", Toast.LENGTH_SHORT);
+                return;
+            }
             boolean newState = !GhostModeManager.getInstance().isDontReadEnabled();
             GhostModeManager.getInstance().setDontReadEnabled(newState);
             adapter.updateValuedSettingById(ID_DONT_READ);
         } else if (id == ID_DONT_TYPE) {
+            if (!ghostEnabled) {
+                UI.showToast("Сначала включите режим призрака", Toast.LENGTH_SHORT);
+                return;
+            }
             boolean newState = !GhostModeManager.getInstance().isDontTypeEnabled();
             GhostModeManager.getInstance().setDontTypeEnabled(newState);
             adapter.updateValuedSettingById(ID_DONT_TYPE);
         } else if (id == ID_READ_ON_INTERACT) {
+            if (!ghostEnabled) {
+                UI.showToast("Сначала включите режим призрака", Toast.LENGTH_SHORT);
+                return;
+            }
             boolean newState = !GhostModeManager.getInstance().isReadOnInteractEnabled();
             GhostModeManager.getInstance().setReadOnInteractEnabled(newState);
             adapter.updateValuedSettingById(ID_READ_ON_INTERACT);

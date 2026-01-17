@@ -765,6 +765,14 @@ public class TdlibMessageViewer {
     }
 
     private void viewMessagesImpl (long chatId, long[] messageIds, TdApi.MessageSource messageSource, boolean forceRead, @Nullable RunnableBool after) {
+      // Ghost Mode: Block read receipts if enabled
+      if (org.thunderdog.challegram.data.GhostModeManager.getInstance().shouldBlockReadReceipt()) {
+        if (after != null) {
+          after.runWithBool(true); // Fake success
+        }
+        return;
+      }
+      
       if (messageIds.length > 0) {
         context.tdlib.send(new TdApi.ViewMessages(chatId, messageIds, messageSource, forceRead), (ok, error) -> {
           if (after != null) {
