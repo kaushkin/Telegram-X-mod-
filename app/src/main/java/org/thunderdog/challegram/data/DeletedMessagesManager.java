@@ -436,6 +436,10 @@ public class DeletedMessagesManager { // Sync fix
         }
     }
 
+    public boolean isDeletedByMe(long messageId) {
+        return deletedByMeMessageIds.contains(messageId);
+    }
+
     private final Map<Long, Long> lastDeletedMessageIds = Collections.synchronizedMap(new HashMap<>());
 
     public void onMessagesDeleted(final org.thunderdog.challegram.telegram.Tdlib tdlib, final long chatId, final long[] messageIds) {

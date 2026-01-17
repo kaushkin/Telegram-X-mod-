@@ -580,6 +580,9 @@ public class SettingsNotificationController extends RecyclerViewController<Setti
   }
 
   private boolean needErrorMode () {
+    if ("EXPERIMENTAL_BUILD_DETECTED".equals(tdlib.context().getTokenError())) {
+      return false;
+    }
     return Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT && customChatId == 0 && scope == null && tdlib.notifications().areNotificationsBlockedGlobally();
   }
 
