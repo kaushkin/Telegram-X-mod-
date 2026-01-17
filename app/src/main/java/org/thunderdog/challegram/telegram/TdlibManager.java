@@ -1709,13 +1709,14 @@ public class TdlibManager implements Iterable<TdlibAccount>, UI.StateListener {
       }
       return;
     }
-    if (BuildConfig.EXPERIMENTAL) {
+    // MOD: Allow Firebase in debug/experimental builds
+    /*if (BuildConfig.EXPERIMENTAL) {
       setTokenState(TokenState.ERROR, EXPERIMENTAL_BUILD_ERROR, null);
       if (after != null) {
         after.runWithBool(false);
       }
       return;
-    }
+    }*/
     setTokenState(TokenState.INITIALIZING);
     TdlibNotificationUtils.getDeviceToken(UI.getAppContext(), retryCount, new TokenRetrieverListener() {
 

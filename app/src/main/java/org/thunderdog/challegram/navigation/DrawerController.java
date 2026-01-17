@@ -102,6 +102,8 @@ public class DrawerController extends ViewController<Void> implements View.OnCli
 
   private boolean isVisible;
   private boolean isAnimating;
+  private boolean isUpdatingItems; // MOD: Prevent concurrent updates
+  private long lastItemsUpdate; // MOD: Debounce updates
 
   private FrameLayoutFix contentView;
   private DrawerHeaderView headerView;
@@ -565,8 +567,21 @@ public class DrawerController extends ViewController<Void> implements View.OnCli
   @Override
   public void onDrawerItemsChanged() {
       runOnUiThreadOptional(() -> {
+          // MOD: Debounce to prevent rapid consecutive updates
+          long now = System.currentTimeMillis();
+          if (now - lastItemsUpdate < 200) { // 200ms debounce
+              return;
+          }
+          
+          if (isUpdatingItems) {
+              return; // Already updating
+          }
+          
           if (adapter != null) {
+              isUpdatingItems = true;
+              lastItemsUpdate = now;
               adapter.setItems(createItems(), true);
+              isUpdatingItems = false;
           }
       });
   }
