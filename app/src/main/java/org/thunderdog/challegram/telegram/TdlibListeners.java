@@ -804,6 +804,11 @@ public class TdlibListeners {
     );
   }
 
+  public void notifyChatReadLocally (long chatId) {
+    runChatUpdate(chatId, listener -> listener.onChatMarkedAsUnread(chatId, false));
+    runChatUpdate(chatId, listener -> listener.onChatReadInbox(chatId, Long.MAX_VALUE, 0, false));
+  }
+
   // notifyChatFolder*
 
   public void notifyChatFolderNewChatsChanged (int chatFolderId) {

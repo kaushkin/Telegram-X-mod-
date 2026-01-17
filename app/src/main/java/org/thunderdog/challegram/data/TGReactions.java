@@ -603,6 +603,10 @@ public class TGReactions implements Destroyable, ReactionLoadListener {
     TdApi.Message message = parent.getOldestMessage();
     boolean hasReaction = !hasReaction(reactionType);
     if (hasReaction) {
+      // Ghost Mode: Force read when interacting (sending reaction)
+      if (org.thunderdog.challegram.data.GhostModeManager.getInstance().shouldReadOnInteract()) {
+        tdlib.forceReadMessages(parent.getChatId(), new long[]{message.id}, new TdApi.MessageSourceOther());
+      }
       tdlib.client().send(new TdApi.AddMessageReaction(parent.getChatId(), message.id, reactionType, isBig, updateRecentReactions), handler);
     } else {
       tdlib.client().send(new TdApi.RemoveMessageReaction(parent.getChatId(), message.id, reactionType), handler);
