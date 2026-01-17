@@ -813,10 +813,11 @@ public class DrawerController extends ViewController<Void> implements View.OnCli
     } else {
       int count = 0;
       for (int i = 1; i < adapter.getItems().size(); i++) {
-        int id = adapter.getItems().get(i).getId();
-        if (id == R.id.account || id == R.id.btn_addAccount) {
+        ListItem item = adapter.getItems().get(i);
+        int id = item.getId();
+        if (id == R.id.account || id == R.id.btn_addAccount || item.getViewType() == ListItem.TYPE_SEPARATOR_FULL) {
           count++;
-        } else if (id != ListItem.ID_UNKNOWN) {
+        } else {
           break;
         }
       }
