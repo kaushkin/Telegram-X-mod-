@@ -360,7 +360,13 @@ public class TGFoundChat {
   }
 
   public int getUnreadCount () {
-    return (flags & FLAG_NO_UNREAD) != 0 ? 0 : chat != null ? (chat.unreadCount > 0 ? chat.unreadCount : chat.isMarkedAsUnread ? Tdlib.CHAT_MARKED_AS_UNREAD : 0) : 0;
+    if ((flags & FLAG_NO_UNREAD) != 0) return 0;
+    if (chat == null) return 0;
+    // Ghost Mode: Show as read if marked locally read
+    if (GhostModeManager.getInstance().isChatLocallyRead(chat.id)) {
+      return 0;
+    }
+    return chat.unreadCount > 0 ? chat.unreadCount : chat.isMarkedAsUnread ? Tdlib.CHAT_MARKED_AS_UNREAD : 0;
   }
 
   private void setTitleImpl (String title, @Nullable TdApi.Chat chat) {

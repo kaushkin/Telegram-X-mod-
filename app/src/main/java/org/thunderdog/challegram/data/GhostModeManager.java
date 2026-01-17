@@ -3,6 +3,9 @@ package org.thunderdog.challegram.data;
 import android.content.Context;
 import android.content.SharedPreferences;
 
+import java.util.HashSet;
+import java.util.Set;
+
 /**
  * Manager for Ghost Mode feature - allows hiding read receipts, typing indicators, etc.
  */
@@ -19,6 +22,9 @@ public class GhostModeManager {
     private static final String KEY_DONT_TYPE = "dont_type";
     private static final String KEY_DONT_ONLINE = "dont_online";
     private static final String KEY_READ_ON_INTERACT = "read_on_interact";
+    
+    // Local read tracking - chats that appear locally read but not on server
+    private final Set<Long> locallyReadChats = new HashSet<>();
     
     public static GhostModeManager getInstance() {
         return INSTANCE;
@@ -115,5 +121,35 @@ public class GhostModeManager {
      */
     public boolean shouldHideOnline() {
         return isGhostModeEnabled() && isDontOnlineEnabled();
+    }
+    
+    /**
+     * Check if should read on interact (send message, reaction, etc.)
+     */
+    public boolean shouldReadOnInteract() {
+        return isGhostModeEnabled() && isReadOnInteractEnabled();
+    }
+    
+    // ========== Local Read Tracking ==========
+    
+    /**
+     * Mark a chat as locally read (hide unread badge without notifying server)
+     */
+    public void markChatLocallyRead(long chatId) {
+        locallyReadChats.add(chatId);
+    }
+    
+    /**
+     * Check if chat is marked as locally read
+     */
+    public boolean isChatLocallyRead(long chatId) {
+        return locallyReadChats.contains(chatId);
+    }
+    
+    /**
+     * Clear locally read status for a chat (when actually read on server)
+     */
+    public void clearLocallyRead(long chatId) {
+        locallyReadChats.remove(chatId);
     }
 }

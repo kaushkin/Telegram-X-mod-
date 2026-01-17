@@ -4720,6 +4720,14 @@ public class Tdlib implements TdlibProvider, Settings.SettingsChangeListener, Da
   }
 
   public void sendMessage (long chatId, @Nullable TdApi.MessageTopic topicId, @Nullable TdApi.InputMessageReplyTo replyTo, TdApi.MessageSendOptions options, TdApi.InputMessageContent inputMessageContent, @Nullable RunnableData<TdApi.Message> after) {
+    // Ghost Mode: Force read when interacting (sending message)
+    if (GhostModeManager.getInstance().shouldReadOnInteract()) {
+      TdApi.Chat chat = chat(chatId);
+      if (chat != null && chat.lastMessage != null) {
+        forceReadMessages(chatId, new long[]{chat.lastMessage.id}, new TdApi.MessageSourceOther());
+      }
+    }
+    
     client().send(new TdApi.SendMessage(chatId, topicId, replyTo, options, null, inputMessageContent), after != null ? result -> {
       messageHandler.onResult(result);
       after.runWithData(result instanceof TdApi.Message ? (TdApi.Message) result : null);
@@ -5666,17 +5674,30 @@ public class Tdlib implements TdlibProvider, Settings.SettingsChangeListener, Da
   }
 
   public void readMessages (long chatId, long[] messageIds, TdApi.MessageSource source) {
-    // Ghost Mode: Block read receipts if enabled
+    // Ghost Mode: Block read receipts if enabled, but track locally
     if (GhostModeManager.getInstance().shouldBlockReadReceipt()) {
       if (Log.isEnabled(Log.TAG_FCM)) {
         Log.i(Log.TAG_FCM, "[GHOST] Blocked read receipt for chatId:%d", chatId);
       }
+      // Track this chat as locally read
+      GhostModeManager.getInstance().markChatLocallyRead(chatId);
       return; // Don't send ViewMessages
     }
     
     if (Log.isEnabled(Log.TAG_FCM)) {
       Log.i(Log.TAG_FCM, "Reading messages chatId:%d messageIds:%s", Log.generateSingleLineException(2), chatId, Arrays.toString(messageIds));
     }
+    client().send(new TdApi.ViewMessages(chatId, messageIds, source, true), okHandler());
+  }
+
+  /**
+   * Force read messages - bypasses Ghost Mode (used for read-on-interact)
+   */
+  public void forceReadMessages (long chatId, long[] messageIds, TdApi.MessageSource source) {
+    if (Log.isEnabled(Log.TAG_FCM)) {
+      Log.i(Log.TAG_FCM, "[GHOST] Force reading messages chatId:%d messageIds:%s", chatId, Arrays.toString(messageIds));
+    }
+    GhostModeManager.getInstance().clearLocallyRead(chatId);
     client().send(new TdApi.ViewMessages(chatId, messageIds, source, true), okHandler());
   }
 
