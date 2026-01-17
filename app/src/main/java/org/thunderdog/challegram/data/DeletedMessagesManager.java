@@ -26,6 +26,7 @@ public class DeletedMessagesManager { // Sync fix
     private static final String TAG = "ANTIDELETE";
     private static final DeletedMessagesManager INSTANCE = new DeletedMessagesManager();
     private File savedMessagesDir;
+    private File ghostCacheDir;
     
     // Cache helper: Store recent messages to grab content when deleted
     // Limit to 500 messages to prevent memory leak
@@ -94,6 +95,14 @@ public class DeletedMessagesManager { // Sync fix
 
     
     private void updateMessageFile(TdApi.Message message, TdApi.File file) {
+        // Pre-cache if completed
+        if (file.local.isDownloadingCompleted) {
+            String safePath = preCacheFile(file);
+            if (safePath != null) {
+                file.local.path = safePath;
+            }
+        }
+
         if (message.content instanceof TdApi.MessagePhoto) {
             for (TdApi.PhotoSize sz : ((TdApi.MessagePhoto) message.content).photo.sizes) {
                 if (sz.photo.id == file.id) {
@@ -126,6 +135,34 @@ public class DeletedMessagesManager { // Sync fix
         }
     }
 
+    private String preCacheFile(TdApi.File file) {
+        if (ghostCacheDir == null) return null;
+        try {
+            String originalPath = file.local.path;
+            if (originalPath == null || !new File(originalPath).exists()) return null;
+            
+            // Generate unique name: file_{id}.ext
+            String ext = ".dat";
+            if (originalPath.contains(".")) {
+                ext = originalPath.substring(originalPath.lastIndexOf("."));
+            }
+            File dest = new File(ghostCacheDir, "file_" + file.id + ext);
+            
+            // If already cached, return cached path
+            if (dest.exists() && dest.length() > 0) {
+                 // Log.d(TAG, "File " + file.id + " already pre-cached: " + dest.getAbsolutePath());
+                 return dest.getAbsolutePath();
+            }
+            
+            copyFile(new File(originalPath), dest);
+            Log.i(TAG, "ANTIDELETE: Pre-cached file " + file.id + " to " + dest.getAbsolutePath());
+            return dest.getAbsolutePath();
+        } catch (Exception e) {
+            Log.e(TAG, "Failed to pre-cache file " + file.id + ": " + e.getMessage());
+        }
+        return null;
+    }
+
     private Context context;
     private SharedPreferences prefs;
 
@@ -150,6 +187,10 @@ public class DeletedMessagesManager { // Sync fix
         this.savedMessagesDir = new File(context.getExternalFilesDir(null), "deleted_msgs_v1");
         if (!savedMessagesDir.exists()) {
             savedMessagesDir.mkdirs();
+        }
+        this.ghostCacheDir = new File(context.getExternalCacheDir(), "ghost_cache");
+        if (!ghostCacheDir.exists()) {
+            ghostCacheDir.mkdirs();
         }
         // Initialize edit history dir
         this.editHistoryDir = new File(context.getExternalFilesDir(null), "edit_history_v1");

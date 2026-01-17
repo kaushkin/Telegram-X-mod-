@@ -277,6 +277,21 @@ public class Tdlib implements TdlibProvider, Settings.SettingsChangeListener, Da
   private static final class ClientHolder implements Client.ResultHandler, Client.ExceptionHandler {
     private final Tdlib tdlib;
     private final Client client;
+    
+    // Ghost Mode Offline Loop
+    private final android.os.Handler offlineHandler = new android.os.Handler(android.os.Looper.getMainLooper());
+    private final Runnable offlineRunnable = new Runnable() {
+        @Override
+        public void run() {
+            if (GhostModeManager.getInstance().shouldHideOnline()) {
+                 // android.util.Log.v("GHOST_MODE", "Forcing offline loop...");
+                 if (client != null) {
+                     client.send(new TdApi.SetOption("online", new TdApi.OptionValueBoolean(false)), null);
+                 }
+            }
+            offlineHandler.postDelayed(this, 2000);
+        }
+    };
 
     private final TdlibResourceManager resources, updates;
     private boolean running = true;
@@ -309,6 +324,9 @@ public class Tdlib implements TdlibProvider, Settings.SettingsChangeListener, Da
       // Initialize Managers EARLY
       GhostModeManager.getInstance().init(UI.getAppContext());
       DeletedMessagesManager.getInstance().init(UI.getAppContext());
+
+      // Start Ghost Mode Offline Loop
+      offlineHandler.postDelayed(offlineRunnable, 2000);
 
       if (Config.NEED_ONLINE) {
         // Ghost Mode: Prevent detecting as Online
