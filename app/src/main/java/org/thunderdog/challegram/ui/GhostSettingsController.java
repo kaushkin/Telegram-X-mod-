@@ -207,7 +207,7 @@ public class GhostSettingsController extends ViewController<Void> implements Vie
             adapter.updateValuedSettingById(ID_GHOST_MODE);
             updateGhostSubSettings();
         } else if (id == ID_DRAWER_SETTINGS) {
-            UI.navigateTo(new DrawerPreferencesController(context, getTdlib()));
+            UI.navigateTo(new DrawerPreferencesController(context, tdlib));
         }
         
         // Ghost Mode sub-settings - only work when ghost mode is enabled
