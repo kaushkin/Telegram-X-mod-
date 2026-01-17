@@ -3,8 +3,8 @@ package org.thunderdog.challegram.data;
 import android.content.Context;
 import android.content.SharedPreferences;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Manager for Ghost Mode feature - allows hiding read receipts, typing indicators, etc.
@@ -25,9 +25,111 @@ public class GhostModeManager {
     
     // Local read tracking - map of chatId -> unread count offset (subtrahend)
     private final Map<Long, Integer> chatUnreadOffsets = new ConcurrentHashMap<>();
-
-    // ... (Keep existing methods until we replace them)
-
+    
+    public static GhostModeManager getInstance() {
+        return INSTANCE;
+    }
+    
+    public void init(Context context) {
+        this.prefs = context.getSharedPreferences(PREF_FILE, Context.MODE_PRIVATE);
+    }
+    
+    // ========== Global Ghost Mode Toggle ==========
+    
+    public boolean isGhostModeEnabled() {
+        return prefs != null && prefs.getBoolean(KEY_GHOST_ENABLED, false);
+    }
+    
+    public void setGhostModeEnabled(boolean enabled) {
+        if (prefs != null) {
+            prefs.edit().putBoolean(KEY_GHOST_ENABLED, enabled).apply();
+        }
+    }
+    
+    // ========== Individual Settings ==========
+    
+    /**
+     * Don't send read receipts (ViewMessages)
+     */
+    public boolean isDontReadEnabled() {
+        return prefs != null && prefs.getBoolean(KEY_DONT_READ, true);
+    }
+    
+    public void setDontReadEnabled(boolean enabled) {
+        if (prefs != null) {
+            prefs.edit().putBoolean(KEY_DONT_READ, enabled).apply();
+        }
+    }
+    
+    /**
+     * Don't send typing indicators (SendChatAction)
+     */
+    public boolean isDontTypeEnabled() {
+        return prefs != null && prefs.getBoolean(KEY_DONT_TYPE, true);
+    }
+    
+    public void setDontTypeEnabled(boolean enabled) {
+        if (prefs != null) {
+            prefs.edit().putBoolean(KEY_DONT_TYPE, enabled).apply();
+        }
+    }
+    
+    /**
+     * Don't show online status
+     */
+    public boolean isDontOnlineEnabled() {
+        return prefs != null && prefs.getBoolean(KEY_DONT_ONLINE, false);
+    }
+    
+    public void setDontOnlineEnabled(boolean enabled) {
+        if (prefs != null) {
+            prefs.edit().putBoolean(KEY_DONT_ONLINE, enabled).apply();
+        }
+    }
+    
+    /**
+     * Read messages when sending/reacting (bypass ghost mode when interacting)
+     */
+    public boolean isReadOnInteractEnabled() {
+        return prefs != null && prefs.getBoolean(KEY_READ_ON_INTERACT, true);
+    }
+    
+    public void setReadOnInteractEnabled(boolean enabled) {
+        if (prefs != null) {
+            prefs.edit().putBoolean(KEY_READ_ON_INTERACT, enabled).apply();
+        }
+    }
+    
+    // ========== Logic Helpers ==========
+    
+    /**
+     * Check if read receipt should be blocked
+     */
+    public boolean shouldBlockReadReceipt() {
+        return isGhostModeEnabled() && isDontReadEnabled();
+    }
+    
+    /**
+     * Check if typing indicator should be blocked
+     */
+    public boolean shouldBlockTyping() {
+        return isGhostModeEnabled() && isDontTypeEnabled();
+    }
+    
+    /**
+     * Check if online status should be hidden
+     */
+    public boolean shouldHideOnline() {
+        return isGhostModeEnabled() && isDontOnlineEnabled();
+    }
+    
+    /**
+     * Check if should read on interact (send message, reaction, etc.)
+     */
+    public boolean shouldReadOnInteract() {
+        return isGhostModeEnabled() && isReadOnInteractEnabled();
+    }
+    
     // ========== Local Read Tracking ==========
     
     /**
