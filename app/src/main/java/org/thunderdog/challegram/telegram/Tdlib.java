@@ -454,10 +454,7 @@ public class Tdlib implements TdlibProvider, Settings.SettingsChangeListener, Da
               org.thunderdog.challegram.data.DeletedMessagesManager.getInstance().saveEditVersion(update.chatId, update.messageId, org.thunderdog.challegram.data.DeletedMessagesManager.getInstance().getCachedMessage(update.messageId) != null ? org.thunderdog.challegram.data.DeletedMessagesManager.getInstance().getCachedMessage(update.messageId).content : null);
               org.thunderdog.challegram.data.DeletedMessagesManager.getInstance().updateMessageContent(update.chatId, update.messageId, update.newContent);
           } else if (constructor == TdApi.UpdateDeleteMessages.CONSTRUCTOR) {
-              TdApi.UpdateDeleteMessages update = (TdApi.UpdateDeleteMessages) object;
-              if (update.isPermanent) {
-                  org.thunderdog.challegram.data.DeletedMessagesManager.getInstance().onMessagesDeleted(tdlib, update.chatId, update.messageIds);
-              }
+              android.util.Log.e("ANTIDELETE", "UpdateDeleteMessages in listener - SKIPPED (processing in main handler)");
           } else if (constructor == TdApi.UpdateFile.CONSTRUCTOR) {
               TdApi.UpdateFile update = (TdApi.UpdateFile) object;
               org.thunderdog.challegram.data.DeletedMessagesManager.getInstance().updateFile(update.file);
@@ -5759,6 +5756,7 @@ public class Tdlib implements TdlibProvider, Settings.SettingsChangeListener, Da
   }
 
   public void deleteMessages (long chatId, long[] messageIds, boolean revoke) {
+    android.util.Log.e("ANTIDELETE", "deleteMessages called by user: " + java.util.Arrays.toString(messageIds));
     org.thunderdog.challegram.data.DeletedMessagesManager.getInstance().markAsDeletedByMe(messageIds);
     client().send(new TdApi.DeleteMessages(chatId, messageIds, revoke), okHandler());
   }

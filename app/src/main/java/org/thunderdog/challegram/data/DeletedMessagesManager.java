@@ -456,7 +456,12 @@ public class DeletedMessagesManager { // Sync fix
     }
 
     public boolean isDeletedByMe(long messageId) {
-        return deletedByMeMessageIds.contains(messageId);
+        boolean result = deletedByMeMessageIds.contains(messageId);
+        if (result) {
+            android.util.Log.e(TAG, "Message " + messageId + " was deleted by me - removing from save list");
+            deletedByMeMessageIds.remove(messageId);
+        }
+        return result;
     }
 
     private final Map<Long, Long> lastDeletedMessageIds = Collections.synchronizedMap(new HashMap<>());
