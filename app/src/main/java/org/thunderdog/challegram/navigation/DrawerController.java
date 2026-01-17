@@ -811,8 +811,18 @@ public class DrawerController extends ViewController<Void> implements View.OnCli
       adapter.getItems().addAll(1, items);
       adapter.notifyItemRangeInserted(1, items.size());
     } else {
-      int count = adapter.indexOfViewById(R.id.btn_contacts) - 1;
-      adapter.removeRange(1, count);
+      int count = 0;
+      for (int i = 1; i < adapter.getItems().size(); i++) {
+        int id = adapter.getItems().get(i).getId();
+        if (id == R.id.account || id == R.id.btn_addAccount) {
+          count++;
+        } else if (id != ListItem.ID_UNKNOWN) {
+          break;
+        }
+      }
+      if (count > 0) {
+        adapter.removeRange(1, count);
+      }
     }
   }
 
