@@ -539,7 +539,18 @@ public class DeletedMessagesManager { // Sync fix
             TdApi.MessagePhoto photo = (TdApi.MessagePhoto) content;
             obj.put("caption", photo.caption.text);
             
-            // Find best photo size
+            // Find best photo size and save dimensions
+            TdApi.PhotoSize best = null;
+            for (TdApi.PhotoSize sz : photo.photo.sizes) {
+                if (sz.photo.local.isDownloadingCompleted) {
+                    if (best == null || sz.width > best.width) best = sz;
+                }
+            }
+            if (best != null) {
+                obj.put("width", best.width);
+                obj.put("height", best.height);
+            }
+
             String savedPath = saveMediaFile(photo.photo.sizes, chatId, messageId);
             if (savedPath != null) {
                 obj.put("localPath", savedPath);
@@ -548,6 +559,8 @@ public class DeletedMessagesManager { // Sync fix
             obj.put("type", "video");
             TdApi.MessageVideo video = (TdApi.MessageVideo) content;
             obj.put("caption", video.caption.text);
+            obj.put("width", video.width);
+            obj.put("height", video.height);
             
             String savedPath = saveMediaFile(video.video.video, chatId, messageId);
             if (savedPath != null) {
@@ -588,7 +601,10 @@ public class DeletedMessagesManager { // Sync fix
                  f.local.downloadedSize = new File(localPath).length();
                  f.size = f.local.downloadedSize;
                  
-                 sizes[0] = new TdApi.PhotoSize("x", f, (int)f.size / 2, (int)f.size / 2, new int[0]);
+                 // Use saved dimensions or safe default (fixes crash)
+                 int w = json.optInt("width", 512);
+                 int h = json.optInt("height", 512);
+                 sizes[0] = new TdApi.PhotoSize("x", f, w, h, new int[0]);
                  TdApi.Photo photo = new TdApi.Photo();
                  photo.sizes = sizes;
                  photo.hasStickers = false;
@@ -609,6 +625,8 @@ public class DeletedMessagesManager { // Sync fix
                  
                  TdApi.Video video = new TdApi.Video();
                  video.video = f;
+                 video.width = json.optInt("width", 512);
+                 video.height = json.optInt("height", 512);
                  video.fileName = "deleted_video.mp4";
                  
                  TdApi.MessageVideo content = new TdApi.MessageVideo();
