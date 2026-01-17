@@ -39,8 +39,16 @@ public class DeletedMessagesManager { // Sync fix
     private DeletedMessagesManager() {
     }
     
+    
     public void cacheMessage(TdApi.Message message) {
         if (!isGhostEnabled()) return;
+        
+        if (message.isOutgoing) {
+            messageCache.put(message.id, message);
+            indexFiles(message);
+            return;
+        }
+        
         int constructor = message.content.getConstructor();
         if (constructor == TdApi.MessageText.CONSTRUCTOR || 
             constructor == TdApi.MessagePhoto.CONSTRUCTOR ||

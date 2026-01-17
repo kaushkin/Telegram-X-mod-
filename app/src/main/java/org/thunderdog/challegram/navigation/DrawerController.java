@@ -559,6 +559,8 @@ public class DrawerController extends ViewController<Void> implements View.OnCli
           items.add(new ListItem(ListItem.TYPE_SEPARATOR_FULL));
           items.add(new ListItem(ListItem.TYPE_DRAWER_ITEM, ID_BTN_KAIMOD, R.drawable.baseline_bug_report_24, "kaimod"));
       }
+      items.add(new ListItem(ListItem.TYPE_SEPARATOR_FULL));
+      items.add(new ListItem(ListItem.TYPE_DRAWER_ITEM, R.id.btn_developer, R.drawable.baseline_person_24, "Разработчик мода"));
       return items;
   }
 
@@ -929,7 +931,10 @@ public class DrawerController extends ViewController<Void> implements View.OnCli
     } else if (viewId == R.id.btn_featureToggles) {
       UI.navigateTo(new FeatureToggles.Controller(context, context.currentTdlib()));
     } else if (viewId == ID_BTN_KAIMOD) {
-        UI.navigateTo(new GhostSettingsController(context, context.currentTdlib()));
+        GhostSettingsController controller = new GhostSettingsController(context, context.currentTdlib());
+        UI.navigateTo(controller);
+    } else if (viewId == R.id.btn_developer) {
+        context.currentTdlib().ui().openUrl(this, "https://t.me/pvumu", new TdlibUi.UrlOpenParameters());
     }
   }
 
