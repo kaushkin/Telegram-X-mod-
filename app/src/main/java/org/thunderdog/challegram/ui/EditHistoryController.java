@@ -154,7 +154,12 @@ public class EditHistoryController extends ViewController<EditHistoryController.
             // Container with bubble background
             FrameLayoutFix bubble = new FrameLayoutFix(context);
             bubble.setPadding(Screen.dp(12), Screen.dp(8), Screen.dp(12), Screen.dp(8));
-            bubble.setBackgroundResource(R.drawable.bg_bubble_recv2);
+            
+            // Create rounded background programmatically
+            android.graphics.drawable.GradientDrawable bg = new android.graphics.drawable.GradientDrawable();
+            bg.setColor(0xFF2A2F38); // Dark bubble color
+            bg.setCornerRadius(Screen.dp(12));
+            bubble.setBackground(bg);
             
             android.widget.LinearLayout content = new android.widget.LinearLayout(context);
             content.setOrientation(android.widget.LinearLayout.VERTICAL);
