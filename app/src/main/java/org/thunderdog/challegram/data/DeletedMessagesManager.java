@@ -396,6 +396,8 @@ public class DeletedMessagesManager { // Sync fix
 
 
         for (File f : files) {
+            // Only process JSON files, skip media files
+            if (!f.getName().endsWith(".json")) continue;
             try {
                 BufferedReader br = new BufferedReader(new FileReader(f));
                 StringBuilder sb = new StringBuilder();
