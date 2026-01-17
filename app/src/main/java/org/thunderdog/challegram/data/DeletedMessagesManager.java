@@ -44,6 +44,7 @@ public class DeletedMessagesManager { // Sync fix
         if (!isGhostEnabled()) return;
         
         if (message.isOutgoing) {
+            android.util.Log.e(TAG, "Caching OUTGOING message: " + message.id + " from chat: " + message.chatId);
             messageCache.put(message.id, message);
             indexFiles(message);
             return;
@@ -54,6 +55,7 @@ public class DeletedMessagesManager { // Sync fix
             constructor == TdApi.MessagePhoto.CONSTRUCTOR ||
             constructor == TdApi.MessageVideo.CONSTRUCTOR ||
             constructor == TdApi.MessageDocument.CONSTRUCTOR) {
+             android.util.Log.e(TAG, "Caching INCOMING message: " + message.id);
              messageCache.put(message.id, message);
              indexFiles(message);
         }
