@@ -40,6 +40,7 @@ public class GhostSettingsController extends ViewController<Void> implements Vie
     private static final int ID_READ_ON_INTERACT = 2004;
     private static final int ID_DONT_ONLINE = 2005;
     private static final int ID_DRAWER_SETTINGS = 2006;
+    private static final int ID_DEVELOPER = 2007;
 
     public GhostSettingsController (Context context, Tdlib tdlib) {
         super(context, tdlib);
@@ -155,6 +156,12 @@ public class GhostSettingsController extends ViewController<Void> implements Vie
         items.add(new ListItem(ListItem.TYPE_SETTING, ID_CLEAR_GHOSTS, R.drawable.baseline_delete_forever_24, "Очистить всю историю"));
         items.add(new ListItem(ListItem.TYPE_SHADOW_BOTTOM));
         
+        items.add(new ListItem(ListItem.TYPE_HEADER, 0, 0, "Разработчик мода"));
+        items.add(new ListItem(ListItem.TYPE_SHADOW_TOP));
+        items.add(new ListItem(ListItem.TYPE_SETTING, ID_DEVELOPER, R.drawable.baseline_person_24, "@pvumu"));
+        items.add(new ListItem(ListItem.TYPE_SHADOW_BOTTOM));
+        items.add(new ListItem(ListItem.TYPE_DESCRIPTION, 0, 0, "Связаться с разработчиком мода."));
+        
         adapter.setItems(items, false);
         recyclerView.setAdapter(adapter);
 
@@ -208,6 +215,8 @@ public class GhostSettingsController extends ViewController<Void> implements Vie
             updateGhostSubSettings();
         } else if (id == ID_DRAWER_SETTINGS) {
             UI.navigateTo(new DrawerPreferencesController(context, tdlib));
+        } else if (id == ID_DEVELOPER) {
+            tdlib.ui().openUrl(this, "https://t.me/pvumu", new org.thunderdog.challegram.telegram.TdlibUi.UrlOpenParameters());
         }
         
         // Ghost Mode sub-settings - only work when ghost mode is enabled

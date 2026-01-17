@@ -465,6 +465,8 @@ public class DeletedMessagesManager { // Sync fix
                  continue;
              }
              
+             android.util.Log.e(TAG, "Processing deleted message: " + messageId + " (isOutgoing check will happen in saveMessage)");
+             
              deletedMessageIds.add(messageId); 
              if (messageId > maxId) {
                  maxId = messageId;
