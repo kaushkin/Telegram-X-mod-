@@ -295,7 +295,7 @@ public class Tdlib implements TdlibProvider, Settings.SettingsChangeListener, Da
       this.tdlib = tdlib;
       this.client = Client.create(this, this, this);
       tdlib.updateParameters(client);
-      client.send(new TdApi.SetOption("language_pack_database_path", new TdApi.OptionValueString(new File(file, "langpack").getPath())), tdlib.okHandler());
+      client.send(new TdApi.SetOption("language_pack_database_path", new TdApi.OptionValueString(new File(UI.getAppContext().getFilesDir(), "langpack").getPath())), tdlib.okHandler());
       client.send(new TdApi.SetOption("localization_target", new TdApi.OptionValueString("android")), tdlib.okHandler());
       client.send(new TdApi.SetOption("ignore_background_updates", new TdApi.OptionValueBoolean(false)), tdlib.okHandler());
 
