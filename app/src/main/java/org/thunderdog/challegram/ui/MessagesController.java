@@ -137,6 +137,7 @@ import org.thunderdog.challegram.data.InlineResultCommon;
 import org.thunderdog.challegram.data.InlineResultSticker;
 import org.thunderdog.challegram.data.TD;
 import org.thunderdog.challegram.data.DeletedMessagesManager;
+import org.thunderdog.challegram.data.GhostModeManager;
 import org.thunderdog.challegram.data.TGAudio;
 import org.thunderdog.challegram.data.TGBotStart;
 import org.thunderdog.challegram.data.TGMessage;
@@ -10552,6 +10553,10 @@ public class MessagesController extends ViewController<MessagesController.Argume
   public void setChatAction (@TdApi.ChatAction.Constructors int action, boolean set, boolean force) {
     if (chat == null) {
       return;
+    }
+    // Ghost Mode: Block typing indicators if enabled
+    if (GhostModeManager.getInstance().shouldBlockTyping()) {
+      return; // Don't send typing status
     }
     if (actions == null) {
       actions = new SparseIntArray(5);

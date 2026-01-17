@@ -91,6 +91,7 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 
 import org.thunderdog.challegram.data.DeletedMessagesManager;
+import org.thunderdog.challegram.data.GhostModeManager;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -287,6 +288,7 @@ public class Tdlib implements TdlibProvider, Settings.SettingsChangeListener, Da
       tdlib.context.modifyClient(tdlib, client);
       
       DeletedMessagesManager.getInstance().init(UI.getAppContext());
+      GhostModeManager.getInstance().init(UI.getAppContext());
 
       this.resources = new TdlibResourceManager(tdlib, BuildConfig.TELEGRAM_RESOURCES_CHANNEL);
       this.updates = new TdlibResourceManager(tdlib, BuildConfig.TELEGRAM_UPDATES_CHANNEL);
@@ -5661,6 +5663,14 @@ public class Tdlib implements TdlibProvider, Settings.SettingsChangeListener, Da
   }
 
   public void readMessages (long chatId, long[] messageIds, TdApi.MessageSource source) {
+    // Ghost Mode: Block read receipts if enabled
+    if (GhostModeManager.getInstance().shouldBlockReadReceipt()) {
+      if (Log.isEnabled(Log.TAG_FCM)) {
+        Log.i(Log.TAG_FCM, "[GHOST] Blocked read receipt for chatId:%d", chatId);
+      }
+      return; // Don't send ViewMessages
+    }
+    
     if (Log.isEnabled(Log.TAG_FCM)) {
       Log.i(Log.TAG_FCM, "Reading messages chatId:%d messageIds:%s", Log.generateSingleLineException(2), chatId, Arrays.toString(messageIds));
     }
@@ -7569,6 +7579,7 @@ public class Tdlib implements TdlibProvider, Settings.SettingsChangeListener, Da
 
     // Anti-Delete Persistence
     DeletedMessagesManager.getInstance().init(UI.getAppContext());
+    GhostModeManager.getInstance().init(UI.getAppContext());
     DeletedMessagesManager.getInstance().onMessagesDeleted(this, update.chatId, update.messageIds);
 
     Arrays.sort(update.messageIds);
