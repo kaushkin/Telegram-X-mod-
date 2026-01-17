@@ -4722,16 +4722,32 @@ public class Tdlib implements TdlibProvider, Settings.SettingsChangeListener, Da
   public void sendMessage (long chatId, @Nullable TdApi.MessageTopic topicId, @Nullable TdApi.InputMessageReplyTo replyTo, TdApi.MessageSendOptions options, TdApi.InputMessageContent inputMessageContent, @Nullable RunnableData<TdApi.Message> after) {
     // Ghost Mode: Force read when interacting (sending message)
     if (GhostModeManager.getInstance().shouldReadOnInteract()) {
-      TdApi.Chat chat = chat(chatId);
-      if (chat != null && chat.lastMessage != null) {
-        forceReadMessages(chatId, new long[]{chat.lastMessage.id}, new TdApi.MessageSourceOther());
-      }
+       // Just call forceReadMessages - it will handle finding the correct message to read
+       forceReadMessages(chatId, new long[0], new TdApi.MessageSourceOther());
     }
     
     client().send(new TdApi.SendMessage(chatId, topicId, replyTo, options, null, inputMessageContent), after != null ? result -> {
       messageHandler.onResult(result);
       after.runWithData(result instanceof TdApi.Message ? (TdApi.Message) result : null);
     } : messageHandler());
+  }
+
+  /**
+   * Directly sets the chat as locally read in memory (updates TdApi.Chat) 
+   * and triggers UI notification.
+   */
+  public void setChatLocallyRead(long chatId) {
+    if (Log.isEnabled(Log.TAG_FCM)) {
+      Log.i(Log.TAG_FCM, "[GHOST] setChatLocallyRead chatId:%d", chatId);
+    }
+    // Update local cache
+    TdApi.Chat chat = chat(chatId);
+    if (chat != null) {
+      chat.unreadCount = 0;
+      chat.isMarkedAsUnread = false;
+    }
+    // Notify UI
+    listeners().notifyChatReadLocally(chatId);
   }
 
   public void resendMessages (long chatId, long[] messageIds) {

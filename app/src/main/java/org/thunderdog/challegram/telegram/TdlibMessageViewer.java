@@ -767,10 +767,9 @@ public class TdlibMessageViewer {
     private void viewMessagesImpl (long chatId, long[] messageIds, TdApi.MessageSource messageSource, boolean forceRead, @Nullable RunnableBool after) {
       // Ghost Mode: Block read receipts if enabled, but mark locally read
       if (org.thunderdog.challegram.data.GhostModeManager.getInstance().shouldBlockReadReceipt()) {
-        // Mark as locally read so unread badge disappears
+        // Mark as locally read so unread badge disappears (updates TdApi.Chat and notifies UI)
         org.thunderdog.challegram.data.GhostModeManager.getInstance().markChatLocallyRead(chatId);
-        // Force the chat to update its UI (count -> 0)
-        context.tdlib.listeners().notifyChatReadLocally(chatId);
+        context.tdlib.setChatLocallyRead(chatId);
         if (after != null) {
           after.runWithBool(true); // Fake success
         }
