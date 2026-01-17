@@ -5699,6 +5699,20 @@ public class Tdlib implements TdlibProvider, Settings.SettingsChangeListener, Da
     }
     GhostModeManager.getInstance().clearLocallyRead(chatId);
     client().send(new TdApi.ViewMessages(chatId, messageIds, source, true), okHandler());
+    
+    // Also fetch latest chat history to find the last incoming message and read it using a background request
+    client().send(new TdApi.GetChatHistory(chatId, 0, 0, 20, false), result -> {
+      if (result instanceof TdApi.Messages) {
+        TdApi.Messages messages = (TdApi.Messages) result;
+        for (TdApi.Message msg : messages.messages) {
+           if (!msg.isOutgoing) {
+              // Found latest incoming message
+              client().send(new TdApi.ViewMessages(chatId, new long[]{msg.id}, new TdApi.MessageSourceOther(), true), okHandler());
+              break;
+           }
+        }
+      }
+    });
   }
 
   // TDLib config
