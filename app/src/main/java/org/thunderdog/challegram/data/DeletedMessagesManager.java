@@ -97,15 +97,32 @@ public class DeletedMessagesManager { // Sync fix
         if (message.content instanceof TdApi.MessagePhoto) {
             for (TdApi.PhotoSize sz : ((TdApi.MessagePhoto) message.content).photo.sizes) {
                 if (sz.photo.id == file.id) {
+                    // Regression check: Don't overwrite completed file with incomplete one
+                    if (sz.photo.local.isDownloadingCompleted && !file.local.isDownloadingCompleted) {
+                         Log.w(TAG, "Ignored regression for file " + file.id);
+                         continue;
+                    }
                     sz.photo = file; // Update reference
                 }
             }
         } else if (message.content instanceof TdApi.MessageVideo) {
             TdApi.Video v = ((TdApi.MessageVideo) message.content).video;
-            if (v.video.id == file.id) v.video = file;
+            if (v.video.id == file.id) {
+                 if (v.video.local.isDownloadingCompleted && !file.local.isDownloadingCompleted) {
+                     Log.w(TAG, "Ignored regression for video " + file.id);
+                     return;
+                 }
+                 v.video = file;
+            }
         } else if (message.content instanceof TdApi.MessageDocument) {
              TdApi.Document d = ((TdApi.MessageDocument) message.content).document;
-             if (d.document.id == file.id) d.document = file;
+             if (d.document.id == file.id) {
+                 if (d.document.local.isDownloadingCompleted && !file.local.isDownloadingCompleted) {
+                     Log.w(TAG, "Ignored regression for doc " + file.id);
+                     return;
+                 }
+                 d.document = file;
+             }
         }
     }
 

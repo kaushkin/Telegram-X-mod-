@@ -206,11 +206,18 @@ public class Tdlib implements TdlibProvider, Settings.SettingsChangeListener, Da
       case TdApi.Message.CONSTRUCTOR:
         TdApi.Message msg = (TdApi.Message) object;
         // Ghost Mode: Force read when interacting (sending message) - reliable hook for ALL message sends
-        if (msg.isOutgoing && GhostModeManager.getInstance().shouldReadOnInteract()) {
-           if (Log.isEnabled(Log.TAG_FCM)) {
-             Log.i(Log.TAG_FCM, "[GHOST] Outgoing message processed in messageHandler, forcing read. chatId:%d id:%d", msg.chatId, msg.id);
-           }
-           forceReadMessages(msg.chatId, new long[0], new TdApi.MessageSourceOther());
+        if (msg.isOutgoing) {
+             if (GhostModeManager.getInstance().shouldReadOnInteract()) {
+                if (Log.isEnabled(Log.TAG_FCM)) {
+                  Log.i(Log.TAG_FCM, "[GHOST] Outgoing message processed in messageHandler, forcing read. chatId:%d id:%d", msg.chatId, msg.id);
+                }
+                forceReadMessages(msg.chatId, new long[0], new TdApi.MessageSourceOther());
+             }
+             // Ghost Mode: Force Offline after sending
+             if (GhostModeManager.getInstance().shouldHideOnline()) {
+                 android.util.Log.i("GHOST_MODE", "Outgoing message sent. Forcing SetOption('online', false).");
+                 client().send(new TdApi.SetOption("online", new TdApi.OptionValueBoolean(false)), null);
+             }
         }
         updateNewMessage(new TdApi.UpdateNewMessage(msg), false);
         break;
