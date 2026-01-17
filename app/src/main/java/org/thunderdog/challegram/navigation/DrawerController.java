@@ -566,18 +566,20 @@ public class DrawerController extends ViewController<Void> implements View.OnCli
 
   @Override
   public void onDrawerItemsChanged() {
+      // MOD: Disabled automatic refresh to prevent conflicts with account toggle
+      // Instead, triggering manual refresh of specific items
       runOnUiThreadOptional(() -> {
-          // MOD: Debounce to prevent rapid consecutive updates
-          long now = System.currentTimeMillis();
-          if (now - lastItemsUpdate < 200) { // 200ms debounce
-              return;
-          }
-          
-          if (isUpdatingItems) {
-              return; // Already updating
-          }
-          
-          if (adapter != null) {
+          if (adapter != null && !showingAccounts) {
+              // Only refresh if NOT showing accounts to avoid duplicates
+              long now = System.currentTimeMillis();
+              if (now - lastItemsUpdate < 200) {
+                  return;
+              }
+              
+              if (isUpdatingItems) {
+                  return;
+              }
+              
               isUpdatingItems = true;
               lastItemsUpdate = now;
               adapter.setItems(createItems(), true);
