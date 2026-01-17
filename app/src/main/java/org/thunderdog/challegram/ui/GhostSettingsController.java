@@ -39,6 +39,7 @@ public class GhostSettingsController extends ViewController<Void> implements Vie
     private static final int ID_DONT_TYPE = 2003;
     private static final int ID_READ_ON_INTERACT = 2004;
     private static final int ID_DONT_ONLINE = 2005;
+    private static final int ID_DRAWER_SETTINGS = 2006;
 
     public GhostSettingsController (Context context, Tdlib tdlib) {
         super(context, tdlib);
@@ -123,6 +124,13 @@ public class GhostSettingsController extends ViewController<Void> implements Vie
         
         items.add(new ListItem(ListItem.TYPE_SHADOW_BOTTOM));
         items.add(new ListItem(ListItem.TYPE_DESCRIPTION, 0, 0, "Режим призрака скрывает статусы прочтения и набора текста."));
+
+        // ========== DRAWER SETTINGS ==========
+        items.add(new ListItem(ListItem.TYPE_HEADER, 0, 0, "Боковое меню"));
+        items.add(new ListItem(ListItem.TYPE_SHADOW_TOP));
+        items.add(new ListItem(ListItem.TYPE_SETTING, ID_DRAWER_SETTINGS, R.drawable.baseline_settings_24, "Настройки бокового меню"));
+        items.add(new ListItem(ListItem.TYPE_SHADOW_BOTTOM));
+        items.add(new ListItem(ListItem.TYPE_DESCRIPTION, 0, 0, "Скрыть или показать элементы бокового меню."));
         
         // ========== SAVED MESSAGES SECTION ==========
         items.add(new ListItem(ListItem.TYPE_HEADER, 0, 0, "Удаленные сообщения"));
@@ -196,7 +204,10 @@ public class GhostSettingsController extends ViewController<Void> implements Vie
             }
             
             adapter.updateValuedSettingById(ID_GHOST_MODE);
+            adapter.updateValuedSettingById(ID_GHOST_MODE);
             updateGhostSubSettings();
+        } else if (id == ID_DRAWER_SETTINGS) {
+            UI.navigateTo(new DrawerPreferencesController(context, getTdlib()));
         }
         
         // Ghost Mode sub-settings - only work when ghost mode is enabled

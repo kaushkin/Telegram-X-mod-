@@ -39,6 +39,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import org.drinkless.tdlib.TdApi;
 import org.thunderdog.challegram.BaseActivity;
 import org.thunderdog.challegram.ui.GhostSettingsController;
+import org.thunderdog.challegram.data.GhostModeManager;
 import org.thunderdog.challegram.BuildConfig;
 import org.thunderdog.challegram.R;
 import org.thunderdog.challegram.component.attach.CustomItemAnimator;
@@ -283,33 +284,51 @@ public class DrawerController extends ViewController<Void> implements View.OnCli
       headerView.getExpanderView().setExpanded(true, false);
     }
 
-    items.add(new ListItem(ListItem.TYPE_DRAWER_ITEM, R.id.btn_contacts, R.drawable.baseline_perm_contact_calendar_24, R.string.Contacts));
-    if (Settings.instance().chatFoldersEnabled()) {
-      items.add(new ListItem(ListItem.TYPE_DRAWER_ITEM, R.id.btn_calls, R.drawable.baseline_call_24, R.string.Calls));
+    // MOD: Check visibility prefs
+    GhostModeManager ghostMode = GhostModeManager.getInstance();
+
+    if (ghostMode.isDrawerItemVisible(GhostModeManager.KEY_DRAWER_CONTACTS)) {
+        items.add(new ListItem(ListItem.TYPE_DRAWER_ITEM, R.id.btn_contacts, R.drawable.baseline_perm_contact_calendar_24, R.string.Contacts));
     }
-    items.add(new ListItem(ListItem.TYPE_DRAWER_ITEM, R.id.btn_savedMessages, R.drawable.baseline_bookmark_24, R.string.SavedMessages));
+    if (Settings.instance().chatFoldersEnabled() && ghostMode.isDrawerItemVisible(GhostModeManager.KEY_DRAWER_CALLS)) {
+        items.add(new ListItem(ListItem.TYPE_DRAWER_ITEM, R.id.btn_calls, R.drawable.baseline_call_24, R.string.Calls));
+    }
+    if (ghostMode.isDrawerItemVisible(GhostModeManager.KEY_DRAWER_SAVED_MESSAGES)) {
+        items.add(new ListItem(ListItem.TYPE_DRAWER_ITEM, R.id.btn_savedMessages, R.drawable.baseline_bookmark_24, R.string.SavedMessages));
+    }
     this.settingsClickBait = getSettingsClickBait();
-    items.add(new ListItem(ListItem.TYPE_DRAWER_ITEM, R.id.btn_settings, R.drawable.baseline_settings_24, R.string.Settings));
-    items.add(new ListItem(ListItem.TYPE_DRAWER_ITEM, ID_BTN_KAIMOD, R.drawable.baseline_bug_report_24, "kaimod"));
-    items.add(new ListItem(ListItem.TYPE_DRAWER_ITEM, R.id.btn_invite, R.drawable.baseline_person_add_24, R.string.InviteFriends));
+    if (ghostMode.isDrawerItemVisible(GhostModeManager.KEY_DRAWER_SETTINGS)) {
+        items.add(new ListItem(ListItem.TYPE_DRAWER_ITEM, R.id.btn_settings, R.drawable.baseline_settings_24, R.string.Settings));
+    }
+    if (ghostMode.isDrawerItemVisible(GhostModeManager.KEY_DRAWER_KAIMOD)) {
+        items.add(new ListItem(ListItem.TYPE_DRAWER_ITEM, ID_BTN_KAIMOD, R.drawable.baseline_bug_report_24, "kaimod"));
+    }
+    if (ghostMode.isDrawerItemVisible(GhostModeManager.KEY_DRAWER_INVITE)) {
+        items.add(new ListItem(ListItem.TYPE_DRAWER_ITEM, R.id.btn_invite, R.drawable.baseline_person_add_24, R.string.InviteFriends));
+    }
 
     this.proxyAvailable = Settings.instance().getAvailableProxyCount() > 0;
-    if (proxyAvailable) {
+    if (proxyAvailable && ghostMode.isDrawerItemVisible(GhostModeManager.KEY_DRAWER_PROXY)) {
       proxyItem.setSelected(Settings.instance().getEffectiveProxyId() != Settings.PROXY_ID_NONE);
       items.add(proxyItem);
     }
-    items.add(new ListItem(ListItem.TYPE_DRAWER_ITEM, R.id.btn_help, R.drawable.baseline_help_24, R.string.Help));
-    items.add(new ListItem(ListItem.TYPE_SEPARATOR_FULL));
-    items.add(new ListItem(ListItem.TYPE_DRAWER_ITEM_WITH_RADIO, R.id.btn_night, R.drawable.baseline_brightness_2_24, R.string.NightMode, R.id.btn_night, Theme.isDark()));
+    if (ghostMode.isDrawerItemVisible(GhostModeManager.KEY_DRAWER_HELP)) {
+        items.add(new ListItem(ListItem.TYPE_DRAWER_ITEM, R.id.btn_help, R.drawable.baseline_help_24, R.string.Help));
+    }
+    
+    if (ghostMode.isDrawerItemVisible(GhostModeManager.KEY_DRAWER_NIGHT_MODE)) {
+        items.add(new ListItem(ListItem.TYPE_SEPARATOR_FULL));
+        items.add(new ListItem(ListItem.TYPE_DRAWER_ITEM_WITH_RADIO, R.id.btn_night, R.drawable.baseline_brightness_2_24, R.string.NightMode, R.id.btn_night, Theme.isDark()));
+    }
     if (Test.NEED_CLICK) {
       items.add(new ListItem(ListItem.TYPE_SEPARATOR_FULL));
       items.add(new ListItem(ListItem.TYPE_DRAWER_ITEM, R.id.btn_reportBug, R.drawable.baseline_bug_report_24, Test.CLICK_NAME, false));
     }
-    if (BuildConfig.EXPERIMENTAL) {
+    if (BuildConfig.EXPERIMENTAL && ghostMode.isDrawerItemVisible(GhostModeManager.KEY_DRAWER_FEATURE_TOGGLES)) {
       items.add(new ListItem(ListItem.TYPE_SEPARATOR_FULL));
       items.add(new ListItem(ListItem.TYPE_DRAWER_ITEM, R.id.btn_featureToggles, R.drawable.outline_toggle_on_24, "Feature Toggles", false));
     }
-    if (Settings.instance().inDeveloperMode()) {
+    if (Settings.instance().inDeveloperMode() && ghostMode.isDrawerItemVisible(GhostModeManager.KEY_DRAWER_DEBUG_LOGS)) {
       items.add(new ListItem(ListItem.TYPE_SEPARATOR_FULL));
       items.add(new ListItem(ListItem.TYPE_DRAWER_ITEM, R.id.btn_tdlib_clearLogs, R.drawable.baseline_bug_report_24, "Clear TDLib logs", false));
       items.add(new ListItem(ListItem.TYPE_DRAWER_ITEM, R.id.btn_tdlib_shareLogs, R.drawable.baseline_bug_report_24, "Send TDLib log", false));
