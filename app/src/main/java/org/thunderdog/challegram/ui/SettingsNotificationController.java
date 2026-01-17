@@ -448,14 +448,12 @@ public class SettingsNotificationController extends RecyclerViewController<Setti
         break;
       case TdlibNotificationManager.Status.DISABLED_APP_SYNC:
         guideRes = R.string.NotificationsGuideSyncAppOff;
-        break;
       case TdlibNotificationManager.Status.PUSH_SERVICE_MISSING:
         guideRes = R.string.NotificationsGuideFirebaseUnavailable;
         break;
       case TdlibNotificationManager.Status.PUSH_SERVICE_ERROR:
-        // MOD: Hide experimental build error from UI
         String error = tdlib.context().getTokenError();
-        if ("EXPERIMENTAL_BUILD_DETECTED".equals(error)) {
+        if ("EXPERIMENTAL_BUILD_DETECTED".equals(error) || error == null) {
             return ""; // Hide this error
         }
         return Lang.getMarkdownString(this, R.string.NotificationsGuideFirebaseError, Lang.boldCreator(), error);

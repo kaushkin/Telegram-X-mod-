@@ -509,7 +509,6 @@ public class DrawerController extends ViewController<Void> implements View.OnCli
         }
       }
 
-      // MOD: Check visibility prefs
       GhostModeManager ghostMode = GhostModeManager.getInstance();
 
       if (ghostMode.isDrawerItemVisible(GhostModeManager.KEY_DRAWER_CONTACTS)) {

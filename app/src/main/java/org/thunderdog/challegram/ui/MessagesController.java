@@ -5838,18 +5838,12 @@ public class MessagesController extends ViewController<MessagesController.Argume
             context().tooltipManager().builder(itemView).show(tdlib, R.string.ChannelNoSave).hideDelayed();
             return false;
           }
-          tdlib.ui().saveGifs(((List<TD.DownloadedFile>) selectedMessageTag));
-        }
-        return true;
       } else if (id == R.id.btn_saveFile) {
         if (selectedMessageTag != null) {
-          // MOD: Bypass restriction
-          /*
           if (!selectedMessage.canBeSaved()) {
             context().tooltipManager().builder(itemView).show(tdlib, R.string.ChannelNoSave).hideDelayed();
             return false;
           }
-          */
           TD.saveFiles(context, (List<TD.DownloadedFile>) selectedMessageTag);
         }
         return true;

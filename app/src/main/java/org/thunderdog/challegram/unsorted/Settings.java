@@ -2656,7 +2656,6 @@ public class Settings {
         String type = ((TdApi.ChatSourcePublicServiceAnnouncement) source).type;
         return !pmc.contains(StringUtils.isEmpty(type) ? KEY_TUTORIAL_PSA : KEY_TUTORIAL_PSA + type);
       case TdApi.ChatSourceMtprotoProxy.CONSTRUCTOR:
-        // MOD: Disable proxy sponsor channel
         return false; // needTutorial(TUTORIAL_PROXY_SPONSOR);
       default:
         Td.assertChatSource_12b21238();
