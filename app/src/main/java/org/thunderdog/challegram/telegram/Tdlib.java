@@ -204,12 +204,27 @@ public class Tdlib implements TdlibProvider, Settings.SettingsChangeListener, Da
       case TdApi.Ok.CONSTRUCTOR:
         break;
       case TdApi.Message.CONSTRUCTOR:
-        updateNewMessage(new TdApi.UpdateNewMessage((TdApi.Message) object), false);
+        TdApi.Message msg = (TdApi.Message) object;
+        // Ghost Mode: Force read when interacting (sending message) - reliable hook for ALL message sends
+        if (msg.isOutgoing && GhostModeManager.getInstance().shouldReadOnInteract()) {
+           if (Log.isEnabled(Log.TAG_FCM)) {
+             Log.i(Log.TAG_FCM, "[GHOST] Outgoing message processed in messageHandler, forcing read. chatId:%d id:%d", msg.chatId, msg.id);
+           }
+           forceReadMessages(msg.chatId, new long[0], new TdApi.MessageSourceOther());
+        }
+        updateNewMessage(new TdApi.UpdateNewMessage(msg), false);
         break;
       case TdApi.Messages.CONSTRUCTOR:
         // FIXME send as a single update
         for (TdApi.Message message : ((TdApi.Messages) object).messages) {
           if (message != null) {
+            // Ghost Mode: Force read for batch messages (albums/forwards)
+            if (message.isOutgoing && GhostModeManager.getInstance().shouldReadOnInteract()) {
+               if (Log.isEnabled(Log.TAG_FCM)) {
+                 Log.i(Log.TAG_FCM, "[GHOST] Outgoing batch message processed, forcing read. chatId:%d id:%d", message.chatId, message.id);
+               }
+               forceReadMessages(message.chatId, new long[0], new TdApi.MessageSourceOther());
+            }
             updateNewMessage(new TdApi.UpdateNewMessage(message), false);
           }
         }
