@@ -22,7 +22,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public class DeletedMessagesManager {
+public class DeletedMessagesManager { // Sync fix
     private static final String TAG = "ANTIDELETE";
     private static final DeletedMessagesManager INSTANCE = new DeletedMessagesManager();
     private File savedMessagesDir;
