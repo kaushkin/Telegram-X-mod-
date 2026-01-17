@@ -13,6 +13,26 @@ public class GhostModeManager {
     
     private static final GhostModeManager INSTANCE = new GhostModeManager();
     
+    public interface Listener {
+        void onDrawerItemsChanged();
+    }
+    
+    private final java.util.List<Listener> listeners = new java.util.concurrent.CopyOnWriteArrayList<>();
+    
+    public void addListener(Listener listener) {
+        listeners.add(listener);
+    }
+
+    public void removeListener(Listener listener) {
+        listeners.remove(listener);
+    }
+    
+    private void notifyDrawerItemsChanged() {
+        for (Listener listener : listeners) {
+            listener.onDrawerItemsChanged();
+        }
+    }
+    
     private SharedPreferences prefs;
     
     // Preference keys
@@ -198,6 +218,7 @@ public class GhostModeManager {
     public void setDrawerItemVisible(String key, boolean visible) {
         if (prefs != null) {
             prefs.edit().putBoolean(key, visible).apply();
+            notifyDrawerItemsChanged();
         }
     }
 }

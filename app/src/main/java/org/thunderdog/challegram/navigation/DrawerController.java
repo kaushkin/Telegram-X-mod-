@@ -96,7 +96,7 @@ import me.vkryl.core.collection.IntList;
 import me.vkryl.core.lambda.CancellableRunnable;
 import tgx.td.ChatId;
 
-public class DrawerController extends ViewController<Void> implements View.OnClickListener, Settings.ProxyChangeListener, GlobalAccountListener, GlobalCountersListener, BaseView.CustomControllerProvider, BaseView.ActionListProvider, View.OnLongClickListener, TdlibSettingsManager.NotificationProblemListener, TdlibOptionListener, SessionListener, GlobalTokenStateListener, SystemBackEventListener {
+public class DrawerController extends ViewController<Void> implements View.OnClickListener, Settings.ProxyChangeListener, GlobalAccountListener, GlobalCountersListener, BaseView.CustomControllerProvider, BaseView.ActionListProvider, View.OnLongClickListener, TdlibSettingsManager.NotificationProblemListener, TdlibOptionListener, SessionListener, GlobalTokenStateListener, SystemBackEventListener, GhostModeManager.Listener {
   private int currentWidth, shadowWidth;
   private static final int ID_BTN_KAIMOD = 199000;
 
@@ -276,66 +276,7 @@ public class DrawerController extends ViewController<Void> implements View.OnCli
     FrameLayoutFix.LayoutParams params = FrameLayoutFix.newParams(currentWidth - shadowWidth, ViewGroup.LayoutParams.MATCH_PARENT);
     params.setMargins(0, Screen.dp(148f) + HeaderView.getTopOffset(), 0, 0);
 
-    ArrayList<ListItem> items = new ArrayList<>();
-    items.add(new ListItem(ListItem.TYPE_DRAWER_EMPTY));
-
-    if ((showingAccounts = Settings.instance().isAccountListOpened())) {
-      fillAccountItems(items);
-      headerView.getExpanderView().setExpanded(true, false);
-    }
-
-    // MOD: Check visibility prefs
-    GhostModeManager ghostMode = GhostModeManager.getInstance();
-
-    if (ghostMode.isDrawerItemVisible(GhostModeManager.KEY_DRAWER_CONTACTS)) {
-        items.add(new ListItem(ListItem.TYPE_DRAWER_ITEM, R.id.btn_contacts, R.drawable.baseline_perm_contact_calendar_24, R.string.Contacts));
-    }
-    if (Settings.instance().chatFoldersEnabled() && ghostMode.isDrawerItemVisible(GhostModeManager.KEY_DRAWER_CALLS)) {
-        items.add(new ListItem(ListItem.TYPE_DRAWER_ITEM, R.id.btn_calls, R.drawable.baseline_call_24, R.string.Calls));
-    }
-    if (ghostMode.isDrawerItemVisible(GhostModeManager.KEY_DRAWER_SAVED_MESSAGES)) {
-        items.add(new ListItem(ListItem.TYPE_DRAWER_ITEM, R.id.btn_savedMessages, R.drawable.baseline_bookmark_24, R.string.SavedMessages));
-    }
-    this.settingsClickBait = getSettingsClickBait();
-    if (ghostMode.isDrawerItemVisible(GhostModeManager.KEY_DRAWER_SETTINGS)) {
-        items.add(new ListItem(ListItem.TYPE_DRAWER_ITEM, R.id.btn_settings, R.drawable.baseline_settings_24, R.string.Settings));
-    }
-    if (ghostMode.isDrawerItemVisible(GhostModeManager.KEY_DRAWER_KAIMOD)) {
-        items.add(new ListItem(ListItem.TYPE_DRAWER_ITEM, ID_BTN_KAIMOD, R.drawable.baseline_bug_report_24, "kaimod"));
-    }
-    if (ghostMode.isDrawerItemVisible(GhostModeManager.KEY_DRAWER_INVITE)) {
-        items.add(new ListItem(ListItem.TYPE_DRAWER_ITEM, R.id.btn_invite, R.drawable.baseline_person_add_24, R.string.InviteFriends));
-    }
-
-    this.proxyAvailable = Settings.instance().getAvailableProxyCount() > 0;
-    if (proxyAvailable && ghostMode.isDrawerItemVisible(GhostModeManager.KEY_DRAWER_PROXY)) {
-      proxyItem.setSelected(Settings.instance().getEffectiveProxyId() != Settings.PROXY_ID_NONE);
-      items.add(proxyItem);
-    }
-    if (ghostMode.isDrawerItemVisible(GhostModeManager.KEY_DRAWER_HELP)) {
-        items.add(new ListItem(ListItem.TYPE_DRAWER_ITEM, R.id.btn_help, R.drawable.baseline_help_24, R.string.Help));
-    }
-    
-    if (ghostMode.isDrawerItemVisible(GhostModeManager.KEY_DRAWER_NIGHT_MODE)) {
-        items.add(new ListItem(ListItem.TYPE_SEPARATOR_FULL));
-        items.add(new ListItem(ListItem.TYPE_DRAWER_ITEM_WITH_RADIO, R.id.btn_night, R.drawable.baseline_brightness_2_24, R.string.NightMode, R.id.btn_night, Theme.isDark()));
-    }
-    if (Test.NEED_CLICK) {
-      items.add(new ListItem(ListItem.TYPE_SEPARATOR_FULL));
-      items.add(new ListItem(ListItem.TYPE_DRAWER_ITEM, R.id.btn_reportBug, R.drawable.baseline_bug_report_24, Test.CLICK_NAME, false));
-    }
-    if (BuildConfig.EXPERIMENTAL && ghostMode.isDrawerItemVisible(GhostModeManager.KEY_DRAWER_FEATURE_TOGGLES)) {
-      items.add(new ListItem(ListItem.TYPE_SEPARATOR_FULL));
-      items.add(new ListItem(ListItem.TYPE_DRAWER_ITEM, R.id.btn_featureToggles, R.drawable.outline_toggle_on_24, "Feature Toggles", false));
-    }
-    if (Settings.instance().inDeveloperMode() && ghostMode.isDrawerItemVisible(GhostModeManager.KEY_DRAWER_DEBUG_LOGS)) {
-      items.add(new ListItem(ListItem.TYPE_SEPARATOR_FULL));
-      items.add(new ListItem(ListItem.TYPE_DRAWER_ITEM, R.id.btn_tdlib_clearLogs, R.drawable.baseline_bug_report_24, "Clear TDLib logs", false));
-      items.add(new ListItem(ListItem.TYPE_DRAWER_ITEM, R.id.btn_tdlib_shareLogs, R.drawable.baseline_bug_report_24, "Send TDLib log", false));
-      /*if (BuildConfig.DEBUG) {
-        items.add(new SettingItem(SettingItem.TYPE_DRAWER_ITEM, R.id.btn_submitCrash, R.drawable.baseline_bug_report_24, "Crash app", false));
-      }*/
-    }
+    ArrayList<ListItem> items = createItems();
 
     adapter = new SettingsAdapter(this) {
       @Override
@@ -553,8 +494,81 @@ public class DrawerController extends ViewController<Void> implements View.OnCli
     TdlibManager.instance().global().addAccountListener(this);
     TdlibManager.instance().global().addCountersListener(this);
     TdlibManager.instance().global().addTokenStateListener(this);
+    GhostModeManager.getInstance().addListener(this);
 
     return contentView;
+  }
+
+  private ArrayList<ListItem> createItems() {
+      ArrayList<ListItem> items = new ArrayList<>();
+      items.add(new ListItem(ListItem.TYPE_DRAWER_EMPTY));
+
+      if ((showingAccounts = Settings.instance().isAccountListOpened())) {
+        fillAccountItems(items);
+        if (headerView != null && headerView.getExpanderView() != null) {
+            headerView.getExpanderView().setExpanded(true, false);
+        }
+      }
+
+      // MOD: Check visibility prefs
+      GhostModeManager ghostMode = GhostModeManager.getInstance();
+
+      if (ghostMode.isDrawerItemVisible(GhostModeManager.KEY_DRAWER_CONTACTS)) {
+          items.add(new ListItem(ListItem.TYPE_DRAWER_ITEM, R.id.btn_contacts, R.drawable.baseline_perm_contact_calendar_24, R.string.Contacts));
+      }
+      if (Settings.instance().chatFoldersEnabled() && ghostMode.isDrawerItemVisible(GhostModeManager.KEY_DRAWER_CALLS)) {
+          items.add(new ListItem(ListItem.TYPE_DRAWER_ITEM, R.id.btn_calls, R.drawable.baseline_call_24, R.string.Calls));
+      }
+      if (ghostMode.isDrawerItemVisible(GhostModeManager.KEY_DRAWER_SAVED_MESSAGES)) {
+          items.add(new ListItem(ListItem.TYPE_DRAWER_ITEM, R.id.btn_savedMessages, R.drawable.baseline_bookmark_24, R.string.SavedMessages));
+      }
+      this.settingsClickBait = getSettingsClickBait();
+      if (ghostMode.isDrawerItemVisible(GhostModeManager.KEY_DRAWER_SETTINGS)) {
+          items.add(new ListItem(ListItem.TYPE_DRAWER_ITEM, R.id.btn_settings, R.drawable.baseline_settings_24, R.string.Settings));
+      }
+      if (ghostMode.isDrawerItemVisible(GhostModeManager.KEY_DRAWER_KAIMOD)) {
+          items.add(new ListItem(ListItem.TYPE_DRAWER_ITEM, ID_BTN_KAIMOD, R.drawable.baseline_bug_report_24, "kaimod"));
+      }
+      if (ghostMode.isDrawerItemVisible(GhostModeManager.KEY_DRAWER_INVITE)) {
+          items.add(new ListItem(ListItem.TYPE_DRAWER_ITEM, R.id.btn_invite, R.drawable.baseline_person_add_24, R.string.InviteFriends));
+      }
+
+      this.proxyAvailable = Settings.instance().getAvailableProxyCount() > 0;
+      if (proxyAvailable && ghostMode.isDrawerItemVisible(GhostModeManager.KEY_DRAWER_PROXY)) {
+        proxyItem.setSelected(Settings.instance().getEffectiveProxyId() != Settings.PROXY_ID_NONE);
+        items.add(proxyItem);
+      }
+      if (ghostMode.isDrawerItemVisible(GhostModeManager.KEY_DRAWER_HELP)) {
+          items.add(new ListItem(ListItem.TYPE_DRAWER_ITEM, R.id.btn_help, R.drawable.baseline_help_24, R.string.Help));
+      }
+      
+      if (ghostMode.isDrawerItemVisible(GhostModeManager.KEY_DRAWER_NIGHT_MODE)) {
+          items.add(new ListItem(ListItem.TYPE_SEPARATOR_FULL));
+          items.add(new ListItem(ListItem.TYPE_DRAWER_ITEM_WITH_RADIO, R.id.btn_night, R.drawable.baseline_brightness_2_24, R.string.NightMode, R.id.btn_night, Theme.isDark()));
+      }
+      if (Test.NEED_CLICK) {
+        items.add(new ListItem(ListItem.TYPE_SEPARATOR_FULL));
+        items.add(new ListItem(ListItem.TYPE_DRAWER_ITEM, R.id.btn_reportBug, R.drawable.baseline_bug_report_24, Test.CLICK_NAME, false));
+      }
+      if (BuildConfig.EXPERIMENTAL && ghostMode.isDrawerItemVisible(GhostModeManager.KEY_DRAWER_FEATURE_TOGGLES)) {
+        items.add(new ListItem(ListItem.TYPE_SEPARATOR_FULL));
+        items.add(new ListItem(ListItem.TYPE_DRAWER_ITEM, R.id.btn_featureToggles, R.drawable.outline_toggle_on_24, "Feature Toggles", false));
+      }
+      if (Settings.instance().inDeveloperMode() && ghostMode.isDrawerItemVisible(GhostModeManager.KEY_DRAWER_DEBUG_LOGS)) {
+        items.add(new ListItem(ListItem.TYPE_SEPARATOR_FULL));
+        items.add(new ListItem(ListItem.TYPE_DRAWER_ITEM, R.id.btn_tdlib_clearLogs, R.drawable.baseline_bug_report_24, "Clear TDLib logs", false));
+        items.add(new ListItem(ListItem.TYPE_DRAWER_ITEM, R.id.btn_tdlib_shareLogs, R.drawable.baseline_bug_report_24, "Send TDLib log", false));
+      }
+      return items;
+  }
+
+  @Override
+  public void onDrawerItemsChanged() {
+      runOnUiThreadOptional(() -> {
+          if (adapter != null) {
+              adapter.setItems(createItems(), true);
+          }
+      });
   }
 
   /*private static SettingItem newWalletItem () {
@@ -567,7 +581,9 @@ public class DrawerController extends ViewController<Void> implements View.OnCli
     Settings.instance().removeProxyListener(this);
     TdlibManager.instance().global().removeAccountListener(this);
     TdlibManager.instance().global().removeCountersListener(this);
+    TdlibManager.instance().global().removeCountersListener(this);
     TdlibManager.instance().global().removeTokenStateListener(this);
+    GhostModeManager.getInstance().removeListener(this);
   }
 
   @Override
