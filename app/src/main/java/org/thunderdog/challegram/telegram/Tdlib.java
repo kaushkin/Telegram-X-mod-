@@ -404,6 +404,13 @@ public class Tdlib implements TdlibProvider, Settings.SettingsChangeListener, Da
       if (running) {
         long ms = SystemClock.uptimeMillis();
         if (object instanceof TdApi.Update) {
+          if (object.getConstructor() == TdApi.UpdateNewMessage.CONSTRUCTOR) {
+              TdApi.Message msg = ((TdApi.UpdateNewMessage) object).message;
+              if (msg != null && !msg.isOutgoing) {
+                  // Ghost Mode: Clear local read status on new incoming message so badge reappears
+                   GhostModeManager.getInstance().clearLocallyRead(msg.chatId);
+              }
+          }
           tdlib.processUpdate(this, (TdApi.Update) object);
         } else {
           Log.e("Invalid update type: %s", object);
