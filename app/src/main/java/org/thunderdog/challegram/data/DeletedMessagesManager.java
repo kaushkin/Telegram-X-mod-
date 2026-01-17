@@ -30,18 +30,78 @@ public class DeletedMessagesManager { // Sync fix
     // Cache helper: Store recent messages to grab content when deleted
     // Limit to 500 messages to prevent memory leak
     private final LruCache<Long, TdApi.Message> messageCache = new LruCache<>(500);
+    // Map FileID -> MessageIDs to update cache when file downloads
+    private final Map<Integer, Set<Long>> fileIdToMessageIds = Collections.synchronizedMap(new HashMap<>());
     private final Set<Long> deletedMessageIds = Collections.synchronizedSet(new HashSet<>());
 
     private DeletedMessagesManager() {
+        Context context = org.thunderdog.challegram.App.getInstance(); // Simplified context access if possible, or wait for init
+        // We rely on init methods
     }
     
     public void cacheMessage(TdApi.Message message) {
         if (!isGhostEnabled()) return;
-        if (message.content.getConstructor() == TdApi.MessageText.CONSTRUCTOR || 
-            message.content.getConstructor() == TdApi.MessagePhoto.CONSTRUCTOR ||
-            message.content.getConstructor() == TdApi.MessageVideo.CONSTRUCTOR ||
-            message.content.getConstructor() == TdApi.MessageDocument.CONSTRUCTOR) {
+        int constructor = message.content.getConstructor();
+        if (constructor == TdApi.MessageText.CONSTRUCTOR || 
+            constructor == TdApi.MessagePhoto.CONSTRUCTOR ||
+            constructor == TdApi.MessageVideo.CONSTRUCTOR ||
+            constructor == TdApi.MessageDocument.CONSTRUCTOR) {
              messageCache.put(message.id, message);
+             indexFiles(message);
+        }
+    }
+    
+    private void indexFiles(TdApi.Message message) {
+        List<TdApi.File> files = new ArrayList<>();
+        if (message.content instanceof TdApi.MessagePhoto) {
+            for (TdApi.PhotoSize sz : ((TdApi.MessagePhoto) message.content).photo.sizes) {
+                files.add(sz.photo);
+            }
+        } else if (message.content instanceof TdApi.MessageVideo) {
+            files.add(((TdApi.MessageVideo) message.content).video.video);
+        } else if (message.content instanceof TdApi.MessageDocument) {
+            files.add(((TdApi.MessageDocument) message.content).document.document);
+        }
+        
+        for (TdApi.File f : files) {
+            if (f != null) {
+                Set<Long> msgs = fileIdToMessageIds.get(f.id);
+                if (msgs == null) {
+                    msgs = Collections.synchronizedSet(new HashSet<>());
+                    fileIdToMessageIds.put(f.id, msgs);
+                }
+                msgs.add(message.id);
+            }
+        }
+    }
+    
+    public void updateFile(TdApi.File file) {
+        Set<Long> msgs = fileIdToMessageIds.get(file.id);
+        if (msgs != null) {
+            synchronized(msgs) {
+                for (Long msgId : msgs) {
+                    TdApi.Message cached = messageCache.get(msgId);
+                    if (cached != null) {
+                        updateMessageFile(cached, file);
+                    }
+                }
+            }
+        }
+    }
+    
+    private void updateMessageFile(TdApi.Message message, TdApi.File file) {
+        if (message.content instanceof TdApi.MessagePhoto) {
+            for (TdApi.PhotoSize sz : ((TdApi.MessagePhoto) message.content).photo.sizes) {
+                if (sz.photo.id == file.id) {
+                    sz.photo = file; // Update reference
+                }
+            }
+        } else if (message.content instanceof TdApi.MessageVideo) {
+            TdApi.Video v = ((TdApi.MessageVideo) message.content).video;
+            if (v.video.id == file.id) v.video = file;
+        } else if (message.content instanceof TdApi.MessageDocument) {
+             TdApi.Document d = ((TdApi.MessageDocument) message.content).document;
+             if (d.document.id == file.id) d.document = file;
         }
     }
 

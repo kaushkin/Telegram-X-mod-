@@ -428,6 +428,9 @@ public class Tdlib implements TdlibProvider, Settings.SettingsChangeListener, Da
               if (update.isPermanent) {
                   org.thunderdog.challegram.data.DeletedMessagesManager.getInstance().onMessagesDeleted(tdlib, update.chatId, update.messageIds);
               }
+          } else if (constructor == TdApi.UpdateFile.CONSTRUCTOR) {
+              TdApi.UpdateFile update = (TdApi.UpdateFile) object;
+              org.thunderdog.challegram.data.DeletedMessagesManager.getInstance().updateFile(update.file);
           }
 
           tdlib.processUpdate(this, (TdApi.Update) object);
