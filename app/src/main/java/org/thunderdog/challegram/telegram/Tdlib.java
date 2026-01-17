@@ -299,7 +299,10 @@ public class Tdlib implements TdlibProvider, Settings.SettingsChangeListener, Da
         // Ghost Mode: Prevent detecting as Online
         boolean shouldBeOnline = tdlib.isOnline;
         if (GhostModeManager.getInstance().shouldHideOnline()) {
+            android.util.Log.i("GHOST_MODE", "Blocking SetOption('online', true) because Hide Online is enabled.");
             shouldBeOnline = false;
+        } else {
+            android.util.Log.i("GHOST_MODE", "Allowing SetOption('online', true). GhostMode=" + GhostModeManager.getInstance().isGhostModeEnabled());
         }
         if (shouldBeOnline) {
           client.send(new TdApi.SetOption("online", new TdApi.OptionValueBoolean(true)), tdlib.okHandler());

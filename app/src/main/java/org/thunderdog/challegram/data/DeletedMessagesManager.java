@@ -522,15 +522,27 @@ public class DeletedMessagesManager { // Sync fix
             String extension = "";
             
             if (mediaSource instanceof TdApi.PhotoSize[]) {
-                // Find biggest photo
+                // Find biggest downloaded photo
                 TdApi.PhotoSize[] sizes = (TdApi.PhotoSize[]) mediaSource;
                 TdApi.PhotoSize best = null;
                 for (TdApi.PhotoSize sz : sizes) {
-                    if (best == null || sz.width > best.width) best = sz;
+                    if (sz.photo.local.isDownloadingCompleted) {
+                        if (best == null || sz.width > best.width) {
+                            best = sz;
+                        }
+                    }
                 }
-                if (best != null && best.photo.local.isDownloadingCompleted) {
+                
+                if (best != null) {
                     sourcePath = best.photo.local.path;
                     extension = ".jpg";
+                    Log.i(TAG, "Selected best photo size: " + best.type + " width=" + best.width + " path=" + sourcePath);
+                } else {
+                    Log.w(TAG, "No downloaded photo size found for msg " + messageId);
+                    // Debug availability
+                    for (TdApi.PhotoSize sz : sizes) {
+                         Log.d(TAG, "Size " + sz.type + ": downloaded=" + sz.photo.local.isDownloadingCompleted + " path=" + sz.photo.local.path);
+                    }
                 }
             } else if (mediaSource instanceof TdApi.File) {
                 TdApi.File f = (TdApi.File) mediaSource;
@@ -541,6 +553,9 @@ public class DeletedMessagesManager { // Sync fix
                     if (sourcePath.contains(".")) {
                        extension = sourcePath.substring(sourcePath.lastIndexOf("."));
                     }
+                    Log.i(TAG, "File source path: " + sourcePath);
+                } else {
+                    Log.w(TAG, "File not downloaded for msg " + messageId + " path=" + f.local.path);
                 }
             }
             
@@ -550,7 +565,10 @@ public class DeletedMessagesManager { // Sync fix
                 
                 File dest = new File(chatDir, "media_" + messageId + extension);
                 copyFile(new File(sourcePath), dest);
+                Log.i(TAG, "Saved media to: " + dest.getAbsolutePath());
                 return dest.getAbsolutePath();
+            } else {
+                Log.e(TAG, "Source file does not exist or path null: " + sourcePath);
             }
         } catch (Exception e) {
             Log.e(TAG, "Failed to save media: " + e);
