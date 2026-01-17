@@ -69,21 +69,27 @@ public class DeletedMessagesManager { // Sync fix
                     fileIdToMessageIds.put(f.id, msgs);
                 }
                 msgs.add(message.id);
+                Log.i(TAG, "Indexed file " + f.id + " for msg " + message.id);
             }
         }
     }
     
     public void updateFile(TdApi.File file) {
+        // Log.v(TAG, "updateFile received for " + file.id);
         Set<Long> msgs = fileIdToMessageIds.get(file.id);
         if (msgs != null) {
+            Log.i(TAG, "updateFile: Found messages for file " + file.id + ": " + msgs);
             synchronized(msgs) {
                 for (Long msgId : msgs) {
                     TdApi.Message cached = messageCache.get(msgId);
                     if (cached != null) {
                         updateMessageFile(cached, file);
+                        Log.i(TAG, "Updated cached file in msg " + msgId);
                     }
                 }
             }
+        } else {
+             // Log.v(TAG, "updateFile: No messages found for file " + file.id);
         }
     }
     

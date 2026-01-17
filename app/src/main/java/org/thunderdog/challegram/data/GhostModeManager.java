@@ -31,16 +31,28 @@ public class GhostModeManager {
     }
     
     public void init(Context context) {
+        if (context == null) {
+            android.util.Log.e("GHOST_MODE", "GhostModeManager.init called with NULL context!");
+            return;
+        }
         this.prefs = context.getSharedPreferences(PREF_FILE, Context.MODE_PRIVATE);
+        android.util.Log.i("GHOST_MODE", "GhostModeManager initialized with context: " + context + ", prefs: " + prefs);
     }
     
     // ========== Global Ghost Mode Toggle ==========
     
     public boolean isGhostModeEnabled() {
-        return prefs != null && prefs.getBoolean(KEY_GHOST_ENABLED, false);
+        if (prefs == null) {
+            android.util.Log.w("GHOST_MODE", "isGhostModeEnabled called but prefs is null!");
+            return false;
+        }
+        boolean enabled = prefs.getBoolean(KEY_GHOST_ENABLED, false);
+        // Too verbose? android.util.Log.v("GHOST_MODE", "isGhostModeEnabled: " + enabled);
+        return enabled;
     }
     
     public void setGhostModeEnabled(boolean enabled) {
+        android.util.Log.i("GHOST_MODE", "Setting GhostModeEnabled: " + enabled);
         if (prefs != null) {
             prefs.edit().putBoolean(KEY_GHOST_ENABLED, enabled).apply();
         }
