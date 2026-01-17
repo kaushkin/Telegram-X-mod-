@@ -888,6 +888,13 @@ public class MessageView extends SparseDrawableView implements Destroyable, Draw
       icons.append(R.drawable.baseline_edit_24);
     }
 
+    // Edit History - show only for edited messages
+    if (!isMore && isSent && newestMessage.editDate > 0) {
+      ids.append(R.id.btn_messageEditHistory);
+      strings.append("История");
+      icons.append(R.drawable.baseline_history_24);
+    }
+
     // Copy, select
 
     TdApi.Chat chat = m.tdlib().chat(msg.getChatId());

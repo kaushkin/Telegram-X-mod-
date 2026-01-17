@@ -5792,6 +5792,10 @@ public class MessagesController extends ViewController<MessagesController.Argume
         TdApi.MessageProperties properties = selectedMessage.lastMessageProperties(editingMessage.id);
         editMessage(new MessageWithProperties(editingMessage, properties));
         return true;
+      } else if (id == R.id.btn_messageEditHistory) {
+        // TODO: Implement full edit history view
+        UI.showToast("История изменений (editDate: " + selectedMessage.getMessage().editDate + ")", Toast.LENGTH_SHORT);
+        return true;
       } else if (id == R.id.btn_messageShare) {
         cancelSheduledKeyboardOpeningAndHideAllKeyboards();
         if (selectedMessage.canBeForwarded()) {
