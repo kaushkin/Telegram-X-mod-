@@ -118,7 +118,7 @@ public class GhostSettingsController extends ViewController<Void> implements Vie
         
         items.add(new ListItem(ListItem.TYPE_RADIO_SETTING, ID_DONT_READ, R.drawable.baseline_done_all_24, "Не читать сообщения"));
         items.add(new ListItem(ListItem.TYPE_RADIO_SETTING, ID_DONT_TYPE, R.drawable.baseline_keyboard_24, "Не отправлять «печатает»"));
-        items.add(new ListItem(ListItem.TYPE_RADIO_SETTING, ID_DONT_ONLINE, R.drawable.baseline_visibility_off_24, "Скрывать онлайн"));
+        items.add(new ListItem(ListItem.TYPE_RADIO_SETTING, ID_DONT_ONLINE, R.drawable.baseline_eye_off_24, "Скрывать онлайн"));
         items.add(new ListItem(ListItem.TYPE_RADIO_SETTING, ID_READ_ON_INTERACT, R.drawable.baseline_gesture_24, "Читать при действиях"));
         
         items.add(new ListItem(ListItem.TYPE_SHADOW_BOTTOM));
