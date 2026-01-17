@@ -136,6 +136,7 @@ import org.thunderdog.challegram.data.InlineResultCommand;
 import org.thunderdog.challegram.data.InlineResultCommon;
 import org.thunderdog.challegram.data.InlineResultSticker;
 import org.thunderdog.challegram.data.TD;
+import org.thunderdog.challegram.data.DeletedMessagesManager;
 import org.thunderdog.challegram.data.TGAudio;
 import org.thunderdog.challegram.data.TGBotStart;
 import org.thunderdog.challegram.data.TGMessage;
@@ -5821,7 +5822,7 @@ public class MessagesController extends ViewController<MessagesController.Argume
             options[i] = dateStr + "\n" + text;
           }
           
-          showOptions("История изменений (" + history.size() + ")", ids, options, null, null, (itemView, optionId) -> {
+          showOptions("История изменений (" + history.size() + ")", ids, options, null, null, (optionView, optionId) -> {
             if (optionId >= 0 && optionId < history.size()) {
               // Show full text of selected version
               DeletedMessagesManager.EditHistoryEntry entry = history.get(optionId);
