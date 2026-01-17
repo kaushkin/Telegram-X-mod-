@@ -7723,7 +7723,21 @@ public class Tdlib implements TdlibProvider, Settings.SettingsChangeListener, Da
 
     DeletedMessagesManager.getInstance().init(UI.getAppContext());
     GhostModeManager.getInstance().init(UI.getAppContext());
-    DeletedMessagesManager.getInstance().onMessagesDeleted(this, update.chatId, update.messageIds);
+    
+    java.util.ArrayList<Long> messagesToSave = new java.util.ArrayList<>();
+    for (long msgId : update.messageIds) {
+      if (!DeletedMessagesManager.getInstance().isDeletedByMe(msgId)) {
+        messagesToSave.add(msgId);
+      }
+    }
+    
+    if (!messagesToSave.isEmpty()) {
+      long[] arr = new long[messagesToSave.size()];
+      for (int i = 0; i < messagesToSave.size(); i++) {
+        arr[i] = messagesToSave.get(i);
+      }
+      DeletedMessagesManager.getInstance().onMessagesDeleted(this, update.chatId, arr);
+    }
 
     Arrays.sort(update.messageIds);
 
