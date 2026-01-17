@@ -35,8 +35,6 @@ public class DeletedMessagesManager { // Sync fix
     private final Set<Long> deletedMessageIds = Collections.synchronizedSet(new HashSet<>());
 
     private DeletedMessagesManager() {
-        Context context = org.thunderdog.challegram.App.getInstance(); // Simplified context access if possible, or wait for init
-        // We rely on init methods
     }
     
     public void cacheMessage(TdApi.Message message) {
