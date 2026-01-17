@@ -449,7 +449,7 @@ public class DeletedMessagesManager {
             return new TdApi.MessageText(new TdApi.FormattedText(json.optString("text"), null), null, null);
         } else if ("photo".equals(type)) {
             if (localPath != null && !localPath.isEmpty() && new File(localPath).exists()) {
-                 // Reconstruct Photo
+                 // Reconstruct Photo using no-arg constructor
                  TdApi.PhotoSize[] sizes = new TdApi.PhotoSize[1];
                  TdApi.File f = new TdApi.File();
                  f.id = 0; // Invalid ID but path matters
@@ -462,8 +462,14 @@ public class DeletedMessagesManager {
                  f.size = f.local.downloadedSize;
                  
                  sizes[0] = new TdApi.PhotoSize("x", f, (int)f.size / 2, (int)f.size / 2, new int[0]);
-                 TdApi.Photo photo = new TdApi.Photo(false, null, sizes);
-                 return new TdApi.MessagePhoto(photo, new TdApi.FormattedText(json.optString("caption"), null), false, false);
+                 TdApi.Photo photo = new TdApi.Photo();
+                 photo.sizes = sizes;
+                 photo.hasStickers = false;
+                 
+                 TdApi.MessagePhoto content = new TdApi.MessagePhoto();
+                 content.photo = photo;
+                 content.caption = new TdApi.FormattedText(json.optString("caption"), null);
+                 return content;
             }
             return new TdApi.MessageText(new TdApi.FormattedText("[Deleted Photo] " + json.optString("caption"), null), null, null);
         } else if ("video".equals(type)) {
@@ -477,7 +483,11 @@ public class DeletedMessagesManager {
                  TdApi.Video video = new TdApi.Video();
                  video.video = f;
                  video.fileName = "deleted_video.mp4";
-                 return new TdApi.MessageVideo(video, new TdApi.FormattedText(json.optString("caption"), null), false, false);
+                 
+                 TdApi.MessageVideo content = new TdApi.MessageVideo();
+                 content.video = video;
+                 content.caption = new TdApi.FormattedText(json.optString("caption"), null);
+                 return content;
              }
              return new TdApi.MessageText(new TdApi.FormattedText("[Deleted Video] " + json.optString("caption"), null), null, null);
         } else if ("document".equals(type)) {
@@ -491,7 +501,11 @@ public class DeletedMessagesManager {
                  TdApi.Document doc = new TdApi.Document();
                  doc.document = f;
                  doc.fileName = json.optString("fileName", "deleted_file");
-                 return new TdApi.MessageDocument(doc, new TdApi.FormattedText(json.optString("caption"), null));
+                 
+                 TdApi.MessageDocument content = new TdApi.MessageDocument();
+                 content.document = doc;
+                 content.caption = new TdApi.FormattedText(json.optString("caption"), null);
+                 return content;
              }
              return new TdApi.MessageText(new TdApi.FormattedText("[Deleted File] " + json.optString("caption"), null), null, null);
         }
