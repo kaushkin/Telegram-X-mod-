@@ -559,8 +559,8 @@ public class DeletedMessagesManager { // Sync fix
             obj.put("type", "video");
             TdApi.MessageVideo video = (TdApi.MessageVideo) content;
             obj.put("caption", video.caption.text);
-            obj.put("width", video.width);
-            obj.put("height", video.height);
+            obj.put("width", video.video.width);
+            obj.put("height", video.video.height);
             
             String savedPath = saveMediaFile(video.video.video, chatId, messageId);
             if (savedPath != null) {
