@@ -2869,7 +2869,8 @@ public abstract class BaseActivity extends FragmentActivity implements View.OnTo
   }
 
   private void setDisallowScreenshots (boolean disallow) {
-    setWindowFlags(disallow ? WindowManager.LayoutParams.FLAG_SECURE : 0, WindowManager.LayoutParams.FLAG_SECURE);
+    // MOD: Always allow screenshots
+    setWindowFlags(0, WindowManager.LayoutParams.FLAG_SECURE);
   }
 
   public interface ActivityListener {

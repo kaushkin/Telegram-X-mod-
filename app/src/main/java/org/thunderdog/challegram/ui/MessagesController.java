@@ -5765,10 +5765,13 @@ public class MessagesController extends ViewController<MessagesController.Argume
         sendDice(itemView, ((TdApi.MessageDice) selectedMessage.getMessage().content).emoji);
         return true;
       } else if (id == R.id.btn_copyTranslation || id == R.id.btn_messageCopy) {
+        // MOD: Bypass restriction
+        /*
         if (!selectedMessage.canBeSaved()) {
           context().tooltipManager().builder(itemView).show(tdlib, R.string.ChannelNoCopy).hideDelayed();
           return false;
         }
+        */
         TdApi.Message message = null;
         if (selectedMessage instanceof TGMessageMedia) {
           long messageId = ((TGMessageMedia) selectedMessage).getCaptionMessageId();
@@ -5840,10 +5843,13 @@ public class MessagesController extends ViewController<MessagesController.Argume
         return true;
       } else if (id == R.id.btn_saveFile) {
         if (selectedMessageTag != null) {
+          // MOD: Bypass restriction
+          /*
           if (!selectedMessage.canBeSaved()) {
             context().tooltipManager().builder(itemView).show(tdlib, R.string.ChannelNoSave).hideDelayed();
             return false;
           }
+          */
           TD.saveFiles(context, (List<TD.DownloadedFile>) selectedMessageTag);
         }
         return true;
@@ -5857,10 +5863,13 @@ public class MessagesController extends ViewController<MessagesController.Argume
         TdlibManager.instance().player().addToPlayList(selectedMessage.getMessage());
         return true;
       } else if (id == R.id.btn_downloadFile) {
+        // MOD: Bypass restriction
+        /*
         if (!selectedMessage.canBeSaved()) {
           context().tooltipManager().builder(itemView).show(tdlib, R.string.ChannelNoSave).hideDelayed();
           return false;
         }
+        */
         TdApi.File file = TD.getFile(selectedMessage);
         if (file != null && !file.local.isDownloadingActive && !file.local.isDownloadingCompleted) {
           tdlib.files().downloadFile(file);
