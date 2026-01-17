@@ -119,9 +119,8 @@ public class TdlibMessageViewer {
       this.date = message.date;
       this.isSent = message.sendingState == null;
       this.isSponsored = false;
-      // MOD: Disable screenshot restriction
-      this.shouldRestrictScreenshots = false; // !message.canBeSaved;
-      this.isScreenshotSensitive = false; // TD.isScreenshotSensitive(message);
+      this.shouldRestrictScreenshots = !message.canBeSaved;
+      this.isScreenshotSensitive = TD.isScreenshotSensitive(message);
     }
 
     public VisibleMessage (long chatId, @NonNull TdApi.SponsoredMessage sponsoredMessage, long flags, long viewId) {
@@ -616,7 +615,6 @@ public class TdlibMessageViewer {
         return false;
       }
       
-      // MOD: Block Sponsored Messages
       if (rawMessage.getConstructor() == TdApi.SponsoredMessage.CONSTRUCTOR) {
            return false;
       }
@@ -724,7 +722,6 @@ public class TdlibMessageViewer {
     }
 
     public boolean needRestrictScreenshots () {
-      // MOD: Disable screenshot restriction
       return false;
     }
 

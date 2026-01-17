@@ -176,7 +176,6 @@
   <item type="id" name="controller_main" />
   <item type="id" name="controller_call_list" />
   <item type="id" name="controller_call" />
-  <item type="id" name="btn_featureToggles" />
   <item type="id" name="btn_developer" />
   <item type="id" name="controller_people" />
   <item type="id" name="controller_settings" />
