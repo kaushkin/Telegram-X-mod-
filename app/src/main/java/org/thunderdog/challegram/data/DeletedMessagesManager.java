@@ -446,6 +446,15 @@ public class DeletedMessagesManager { // Sync fix
         }
     }
 
+    public void updateMessageId(long oldId, TdApi.Message newMessage) {
+        messageCache.remove(oldId);
+        if (newMessage.isOutgoing) {
+            android.util.Log.e(TAG, "Re-caching OUTGOING message with new ID: old=" + oldId + " new=" + newMessage.id);
+            messageCache.put(newMessage.id, newMessage);
+            indexFiles(newMessage);
+        }
+    }
+
     public boolean isDeletedByMe(long messageId) {
         return deletedByMeMessageIds.contains(messageId);
     }
