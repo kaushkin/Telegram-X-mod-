@@ -78,7 +78,7 @@ public class DeletedMessagesManager { // Sync fix
         // Log.v(TAG, "updateFile received for " + file.id);
         Set<Long> msgs = fileIdToMessageIds.get(file.id);
         if (msgs != null) {
-            Log.i(TAG, "updateFile: Found messages for file " + file.id + ": " + msgs);
+            Log.i(TAG, "updateFile: Found messages for file " + file.id + ": " + msgs + " completed=" + file.local.isDownloadingCompleted);
             synchronized(msgs) {
                 for (Long msgId : msgs) {
                     TdApi.Message cached = messageCache.get(msgId);
@@ -88,10 +88,10 @@ public class DeletedMessagesManager { // Sync fix
                     }
                 }
             }
-        } else {
-             // Log.v(TAG, "updateFile: No messages found for file " + file.id);
         }
     }
+    
+
     
     private void updateMessageFile(TdApi.Message message, TdApi.File file) {
         if (message.content instanceof TdApi.MessagePhoto) {
@@ -605,7 +605,7 @@ public class DeletedMessagesManager { // Sync fix
                     Log.w(TAG, "No downloaded photo size found for msg " + messageId);
                     // Debug availability
                     for (TdApi.PhotoSize sz : sizes) {
-                         Log.d(TAG, "Size " + sz.type + ": downloaded=" + sz.photo.local.isDownloadingCompleted + " path=" + sz.photo.local.path);
+                         Log.d(TAG, "Size " + sz.type + " #" + sz.photo.id + ": downloaded=" + sz.photo.local.isDownloadingCompleted + " path=" + sz.photo.local.path);
                     }
                 }
             } else if (mediaSource instanceof TdApi.File) {
@@ -619,7 +619,7 @@ public class DeletedMessagesManager { // Sync fix
                     }
                     Log.i(TAG, "File source path: " + sourcePath);
                 } else {
-                    Log.w(TAG, "File not downloaded for msg " + messageId + " path=" + f.local.path);
+                    Log.w(TAG, "File not downloaded for msg " + messageId + " #" + f.id + " path=" + f.local.path);
                 }
             }
             

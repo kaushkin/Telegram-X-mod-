@@ -295,6 +295,14 @@ public class Tdlib implements TdlibProvider, Settings.SettingsChangeListener, Da
       this.tdlib = tdlib;
       this.client = Client.create(this, this, this);
       tdlib.updateParameters(client);
+      client.send(new TdApi.SetOption("language_pack_database_path", new TdApi.OptionValueString(new File(file, "langpack").getPath())), tdlib.okHandler());
+      client.send(new TdApi.SetOption("localization_target", new TdApi.OptionValueString("android")), tdlib.okHandler());
+      client.send(new TdApi.SetOption("ignore_background_updates", new TdApi.OptionValueBoolean(false)), tdlib.okHandler());
+
+      // Initialize Managers EARLY
+      GhostModeManager.getInstance().init(UI.getAppContext());
+      DeletedMessagesManager.getInstance().init(UI.getAppContext());
+
       if (Config.NEED_ONLINE) {
         // Ghost Mode: Prevent detecting as Online
         boolean shouldBeOnline = tdlib.isOnline;
@@ -302,7 +310,7 @@ public class Tdlib implements TdlibProvider, Settings.SettingsChangeListener, Da
             android.util.Log.i("GHOST_MODE", "Blocking SetOption('online', true) because Hide Online is enabled.");
             shouldBeOnline = false;
         } else {
-            android.util.Log.i("GHOST_MODE", "Allowing SetOption('online', true). GhostMode=" + GhostModeManager.getInstance().isGhostModeEnabled());
+             android.util.Log.i("GHOST_MODE", "Allowing SetOption('online', true). GhostMode=" + GhostModeManager.getInstance().isGhostModeEnabled());
         }
         if (shouldBeOnline) {
           client.send(new TdApi.SetOption("online", new TdApi.OptionValueBoolean(true)), tdlib.okHandler());
@@ -310,9 +318,6 @@ public class Tdlib implements TdlibProvider, Settings.SettingsChangeListener, Da
       }
       tdlib.context.modifyClient(tdlib, client);
       
-      DeletedMessagesManager.getInstance().init(UI.getAppContext());
-      GhostModeManager.getInstance().init(UI.getAppContext());
-
       this.resources = new TdlibResourceManager(tdlib, BuildConfig.TELEGRAM_RESOURCES_CHANNEL);
       this.updates = new TdlibResourceManager(tdlib, BuildConfig.TELEGRAM_UPDATES_CHANNEL);
       if (!tdlib.inRecoveryMode()) {
