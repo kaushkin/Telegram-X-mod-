@@ -37,7 +37,9 @@ public class DeletedMessagesManager {
     public void cacheMessage(TdApi.Message message) {
         if (!isGhostEnabled()) return;
         if (message.content.getConstructor() == TdApi.MessageText.CONSTRUCTOR || 
-            message.content.getConstructor() == TdApi.MessagePhoto.CONSTRUCTOR) {
+            message.content.getConstructor() == TdApi.MessagePhoto.CONSTRUCTOR ||
+            message.content.getConstructor() == TdApi.MessageVideo.CONSTRUCTOR ||
+            message.content.getConstructor() == TdApi.MessageDocument.CONSTRUCTOR) {
              messageCache.put(message.id, message);
         }
     }

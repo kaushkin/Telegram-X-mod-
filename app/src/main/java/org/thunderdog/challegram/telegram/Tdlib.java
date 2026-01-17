@@ -409,6 +409,24 @@ public class Tdlib implements TdlibProvider, Settings.SettingsChangeListener, Da
       if (running) {
         long ms = SystemClock.uptimeMillis();
         if (object instanceof TdApi.Update) {
+          // Ghost Mode Hooks
+          int constructor = object.getConstructor();
+          if (constructor == TdApi.UpdateNewMessage.CONSTRUCTOR) {
+              TdApi.UpdateNewMessage update = (TdApi.UpdateNewMessage) object;
+              if (update.message != null) {
+                  org.thunderdog.challegram.data.DeletedMessagesManager.getInstance().cacheMessage(update.message);
+              }
+          } else if (constructor == TdApi.UpdateMessageContent.CONSTRUCTOR) {
+              TdApi.UpdateMessageContent update = (TdApi.UpdateMessageContent) object;
+              org.thunderdog.challegram.data.DeletedMessagesManager.getInstance().saveEditVersion(update.chatId, update.messageId, org.thunderdog.challegram.data.DeletedMessagesManager.getInstance().getCachedMessage(update.messageId) != null ? org.thunderdog.challegram.data.DeletedMessagesManager.getInstance().getCachedMessage(update.messageId).content : null);
+              org.thunderdog.challegram.data.DeletedMessagesManager.getInstance().updateMessageContent(update.chatId, update.messageId, update.newContent);
+          } else if (constructor == TdApi.UpdateDeleteMessages.CONSTRUCTOR) {
+              TdApi.UpdateDeleteMessages update = (TdApi.UpdateDeleteMessages) object;
+              if (update.isPermanent) {
+                  org.thunderdog.challegram.data.DeletedMessagesManager.getInstance().onMessagesDeleted(tdlib, update.chatId, update.messageIds);
+              }
+          }
+
           tdlib.processUpdate(this, (TdApi.Update) object);
         } else {
           Log.e("Invalid update type: %s", object);

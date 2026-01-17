@@ -38,6 +38,7 @@ public class GhostSettingsController extends ViewController<Void> implements Vie
     private static final int ID_DONT_READ = 2002;
     private static final int ID_DONT_TYPE = 2003;
     private static final int ID_READ_ON_INTERACT = 2004;
+    private static final int ID_DONT_ONLINE = 2005;
 
     public GhostSettingsController (Context context, Tdlib tdlib) {
         super(context, tdlib);
@@ -96,6 +97,10 @@ public class GhostSettingsController extends ViewController<Void> implements Vie
                     view.getToggler().setRadioEnabled(ghostEnabled && GhostModeManager.getInstance().isReadOnInteractEnabled(), isUpdate);
                     view.setEnabled(ghostEnabled);
                     view.setAlpha(ghostEnabled ? 1.0f : 0.5f);
+                } else if (itemId == ID_DONT_ONLINE) {
+                    view.getToggler().setRadioEnabled(ghostEnabled && GhostModeManager.getInstance().isDontOnlineEnabled(), isUpdate);
+                    view.setEnabled(ghostEnabled);
+                    view.setAlpha(ghostEnabled ? 1.0f : 0.5f);
                 }
             }
         };
@@ -113,6 +118,7 @@ public class GhostSettingsController extends ViewController<Void> implements Vie
         
         items.add(new ListItem(ListItem.TYPE_RADIO_SETTING, ID_DONT_READ, R.drawable.baseline_done_all_24, "Не читать сообщения"));
         items.add(new ListItem(ListItem.TYPE_RADIO_SETTING, ID_DONT_TYPE, R.drawable.baseline_keyboard_24, "Не отправлять «печатает»"));
+        items.add(new ListItem(ListItem.TYPE_RADIO_SETTING, ID_DONT_ONLINE, R.drawable.baseline_visibility_off_24, "Скрывать онлайн"));
         items.add(new ListItem(ListItem.TYPE_RADIO_SETTING, ID_READ_ON_INTERACT, R.drawable.baseline_gesture_24, "Читать при действиях"));
         
         items.add(new ListItem(ListItem.TYPE_SHADOW_BOTTOM));
@@ -150,6 +156,7 @@ public class GhostSettingsController extends ViewController<Void> implements Vie
     private void updateGhostSubSettings() {
         adapter.updateValuedSettingById(ID_DONT_READ);
         adapter.updateValuedSettingById(ID_DONT_TYPE);
+        adapter.updateValuedSettingById(ID_DONT_ONLINE);
         adapter.updateValuedSettingById(ID_READ_ON_INTERACT);
     }
 
@@ -181,6 +188,7 @@ public class GhostSettingsController extends ViewController<Void> implements Vie
             if (newState) {
                 GhostModeManager.getInstance().setDontReadEnabled(true);
                 GhostModeManager.getInstance().setDontTypeEnabled(true);
+                GhostModeManager.getInstance().setDontOnlineEnabled(true);
                 GhostModeManager.getInstance().setReadOnInteractEnabled(true);
                 UI.showToast("Режим призрака включен 👻", Toast.LENGTH_SHORT);
             } else {
@@ -216,6 +224,14 @@ public class GhostSettingsController extends ViewController<Void> implements Vie
             boolean newState = !GhostModeManager.getInstance().isReadOnInteractEnabled();
             GhostModeManager.getInstance().setReadOnInteractEnabled(newState);
             adapter.updateValuedSettingById(ID_READ_ON_INTERACT);
+        } else if (id == ID_DONT_ONLINE) {
+            if (!ghostEnabled) {
+                UI.showToast("Сначала включите режим призрака", Toast.LENGTH_SHORT);
+                return;
+            }
+            boolean newState = !GhostModeManager.getInstance().isDontOnlineEnabled();
+            GhostModeManager.getInstance().setDontOnlineEnabled(newState);
+            adapter.updateValuedSettingById(ID_DONT_ONLINE);
         }
     }
 }
