@@ -97,7 +97,7 @@ public class GhostSettingsController extends ViewController<Void> implements Vie
         items.add(new ListItem(ListItem.TYPE_HEADER, 0, 0, "Режим призрака"));
         items.add(new ListItem(ListItem.TYPE_SHADOW_TOP));
         
-        items.add(new ListItem(ListItem.TYPE_RADIO_SETTING, ID_GHOST_MODE, R.drawable.baseline_visibility_off_24, "Включить режим призрака"));
+        items.add(new ListItem(ListItem.TYPE_RADIO_SETTING, ID_GHOST_MODE, R.drawable.baseline_visibility_24, "Включить режим призрака"));
         
         items.add(new ListItem(ListItem.TYPE_SHADOW_BOTTOM));
         items.add(new ListItem(ListItem.TYPE_DESCRIPTION, 0, 0, "Главный переключатель режима призрака. Включите, чтобы активировать настройки ниже."));
@@ -107,7 +107,7 @@ public class GhostSettingsController extends ViewController<Void> implements Vie
         
         items.add(new ListItem(ListItem.TYPE_RADIO_SETTING, ID_DONT_READ, R.drawable.baseline_done_all_24, "Не читать сообщения"));
         items.add(new ListItem(ListItem.TYPE_RADIO_SETTING, ID_DONT_TYPE, R.drawable.baseline_keyboard_24, "Не отправлять «печатает»"));
-        items.add(new ListItem(ListItem.TYPE_RADIO_SETTING, ID_READ_ON_INTERACT, R.drawable.baseline_touch_app_24, "Читать при действиях"));
+        items.add(new ListItem(ListItem.TYPE_RADIO_SETTING, ID_READ_ON_INTERACT, R.drawable.baseline_gesture_24, "Читать при действиях"));
         
         items.add(new ListItem(ListItem.TYPE_SHADOW_BOTTOM));
         items.add(new ListItem(ListItem.TYPE_DESCRIPTION, 0, 0, "«Читать при действиях» - отправлять прочтение при ответе на сообщение или реакции."));
