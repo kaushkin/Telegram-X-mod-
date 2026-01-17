@@ -296,7 +296,12 @@ public class Tdlib implements TdlibProvider, Settings.SettingsChangeListener, Da
       this.client = Client.create(this, this, this);
       tdlib.updateParameters(client);
       if (Config.NEED_ONLINE) {
-        if (tdlib.isOnline) {
+        // Ghost Mode: Prevent detecting as Online
+        boolean shouldBeOnline = tdlib.isOnline;
+        if (GhostModeManager.getInstance().shouldHideOnline()) {
+            shouldBeOnline = false;
+        }
+        if (shouldBeOnline) {
           client.send(new TdApi.SetOption("online", new TdApi.OptionValueBoolean(true)), tdlib.okHandler());
         }
       }

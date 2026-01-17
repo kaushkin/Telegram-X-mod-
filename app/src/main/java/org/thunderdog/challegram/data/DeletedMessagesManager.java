@@ -147,7 +147,7 @@ public class DeletedMessagesManager {
             
             JSONObject json = new JSONObject();
             json.put("timestamp", timestamp);
-            json.put("content", serializeContent(oldContent));
+            json.put("content", serializeContent(oldContent, chatId, messageId));
             
             FileWriter writer = new FileWriter(versionFile);
             writer.write(json.toString());
@@ -232,7 +232,7 @@ public class DeletedMessagesManager {
             json.put("date", message.date);
             json.put("editDate", message.editDate);
             json.put("isOutgoing", message.isOutgoing);
-            json.put("content", serializeContent(message.content));
+            json.put("content", serializeContent(message.content, message.chatId, message.id));
 
             // Mark as locally deleted (Ghost)
             json.put("is_ghost", true);
@@ -402,20 +402,40 @@ public class DeletedMessagesManager {
         return new TdApi.MessageSenderUser(0);
     }
 
-    private JSONObject serializeContent(TdApi.MessageContent content) throws Exception {
+    private JSONObject serializeContent(TdApi.MessageContent content, long chatId, long messageId) throws Exception {
         JSONObject obj = new JSONObject();
         if (content instanceof TdApi.MessageText) {
             obj.put("type", "text");
             obj.put("text", ((TdApi.MessageText) content).text.text);
         } else if (content instanceof TdApi.MessagePhoto) {
             obj.put("type", "photo");
-            obj.put("caption", ((TdApi.MessagePhoto) content).caption.text);
-            // Save minimal info, implementing full photo serialization is complex without file paths.
-            // We'll rely on cached paths if possible or just display caption.
-            // Actually, we'd need to serialize Photo sizes.
+            TdApi.MessagePhoto photo = (TdApi.MessagePhoto) content;
+            obj.put("caption", photo.caption.text);
+            
+            // Find best photo size
+            String savedPath = saveMediaFile(photo.photo.sizes, chatId, messageId);
+            if (savedPath != null) {
+                obj.put("localPath", savedPath);
+            }
         } else if (content instanceof TdApi.MessageVideo) {
             obj.put("type", "video");
-            obj.put("caption", ((TdApi.MessageVideo) content).caption.text);
+            TdApi.MessageVideo video = (TdApi.MessageVideo) content;
+            obj.put("caption", video.caption.text);
+            
+            String savedPath = saveMediaFile(video.video.video, chatId, messageId);
+            if (savedPath != null) {
+                obj.put("localPath", savedPath);
+            }
+        } else if (content instanceof TdApi.MessageDocument) {
+            obj.put("type", "document");
+            TdApi.MessageDocument doc = (TdApi.MessageDocument) content;
+            obj.put("caption", doc.caption.text);
+            obj.put("fileName", doc.document.fileName);
+            
+            String savedPath = saveMediaFile(doc.document.document, chatId, messageId);
+            if (savedPath != null) {
+                obj.put("localPath", savedPath);
+            }
         }
         return obj;
     }
@@ -423,15 +443,113 @@ public class DeletedMessagesManager {
     private TdApi.MessageContent deserializeContent(JSONObject json) {
         if (json == null) return new TdApi.MessageText(new TdApi.FormattedText("Deleted Message (Error)", null), null, null);
         String type = json.optString("type");
+        String localPath = json.optString("localPath");
+        
         if ("text".equals(type)) {
             return new TdApi.MessageText(new TdApi.FormattedText(json.optString("text"), null), null, null);
         } else if ("photo".equals(type)) {
-            // Return a placeholder for photo
-             return new TdApi.MessageText(new TdApi.FormattedText("[Deleted Photo] " + json.optString("caption"), null), null, null);
+            if (localPath != null && !localPath.isEmpty() && new File(localPath).exists()) {
+                 // Reconstruct Photo
+                 TdApi.PhotoSize[] sizes = new TdApi.PhotoSize[1];
+                 TdApi.File f = new TdApi.File();
+                 f.id = 0; // Invalid ID but path matters
+                 f.local = new TdApi.LocalFile();
+                 f.local.path = localPath;
+                 f.local.isDownloadingCompleted = true;
+                 f.local.canBeDownloaded = false;
+                 f.local.downloadedPrefixSize = 0;
+                 f.local.downloadedSize = new File(localPath).length();
+                 f.size = f.local.downloadedSize;
+                 
+                 sizes[0] = new TdApi.PhotoSize("x", f, (int)f.size / 2, (int)f.size / 2, new int[0]);
+                 TdApi.Photo photo = new TdApi.Photo(false, null, sizes);
+                 return new TdApi.MessagePhoto(photo, new TdApi.FormattedText(json.optString("caption"), null), false, false);
+            }
+            return new TdApi.MessageText(new TdApi.FormattedText("[Deleted Photo] " + json.optString("caption"), null), null, null);
         } else if ("video".equals(type)) {
+             if (localPath != null && !localPath.isEmpty() && new File(localPath).exists()) {
+                 TdApi.File f = new TdApi.File();
+                 f.local = new TdApi.LocalFile();
+                 f.local.path = localPath;
+                 f.local.isDownloadingCompleted = true;
+                 f.size = new File(localPath).length();
+                 
+                 TdApi.Video video = new TdApi.Video();
+                 video.video = f;
+                 video.fileName = "deleted_video.mp4";
+                 return new TdApi.MessageVideo(video, new TdApi.FormattedText(json.optString("caption"), null), false, false);
+             }
              return new TdApi.MessageText(new TdApi.FormattedText("[Deleted Video] " + json.optString("caption"), null), null, null);
+        } else if ("document".equals(type)) {
+             if (localPath != null && !localPath.isEmpty() && new File(localPath).exists()) {
+                 TdApi.File f = new TdApi.File();
+                 f.local = new TdApi.LocalFile();
+                 f.local.path = localPath;
+                 f.local.isDownloadingCompleted = true;
+                 f.size = new File(localPath).length();
+
+                 TdApi.Document doc = new TdApi.Document();
+                 doc.document = f;
+                 doc.fileName = json.optString("fileName", "deleted_file");
+                 return new TdApi.MessageDocument(doc, new TdApi.FormattedText(json.optString("caption"), null));
+             }
+             return new TdApi.MessageText(new TdApi.FormattedText("[Deleted File] " + json.optString("caption"), null), null, null);
         }
         return new TdApi.MessageText(new TdApi.FormattedText("[Deleted Content]", null), null, null);
+    }
+
+    private String saveMediaFile(Object mediaSource, long chatId, long messageId) {
+        if (savedMessagesDir == null) return null;
+        try {
+            String sourcePath = null;
+            String extension = "";
+            
+            if (mediaSource instanceof TdApi.PhotoSize[]) {
+                // Find biggest photo
+                TdApi.PhotoSize[] sizes = (TdApi.PhotoSize[]) mediaSource;
+                TdApi.PhotoSize best = null;
+                for (TdApi.PhotoSize sz : sizes) {
+                    if (best == null || sz.width > best.width) best = sz;
+                }
+                if (best != null && best.photo.local.isDownloadingCompleted) {
+                    sourcePath = best.photo.local.path;
+                    extension = ".jpg";
+                }
+            } else if (mediaSource instanceof TdApi.File) {
+                TdApi.File f = (TdApi.File) mediaSource;
+                if (f.local.isDownloadingCompleted) {
+                    sourcePath = f.local.path;
+                    // Determine extension from path or default
+                    extension = ".dat"; 
+                    if (sourcePath.contains(".")) {
+                       extension = sourcePath.substring(sourcePath.lastIndexOf("."));
+                    }
+                }
+            }
+            
+            if (sourcePath != null && new File(sourcePath).exists()) {
+                File chatDir = new File(savedMessagesDir, String.valueOf(chatId));
+                if (!chatDir.exists()) chatDir.mkdirs();
+                
+                File dest = new File(chatDir, "media_" + messageId + extension);
+                copyFile(new File(sourcePath), dest);
+                return dest.getAbsolutePath();
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "Failed to save media: " + e);
+        }
+        return null;
+    }
+
+    private void copyFile(File source, File dest) throws Exception {
+        try (java.io.FileInputStream is = new java.io.FileInputStream(source);
+             java.io.FileOutputStream os = new java.io.FileOutputStream(dest)) {
+            byte[] buffer = new byte[1024];
+            int length;
+            while ((length = is.read(buffer)) > 0) {
+                os.write(buffer, 0, length);
+            }
+        }
     }
 
     // UPDATED: Strictly check if message is confirmed deleted (in memory set or on disk)
