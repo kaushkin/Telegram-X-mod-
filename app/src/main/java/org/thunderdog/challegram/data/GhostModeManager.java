@@ -212,7 +212,11 @@ public class GhostModeManager {
     public static final String KEY_DRAWER_DEBUG_LOGS = "drawer_debug_logs";
 
     public boolean isDrawerItemVisible(String key) {
-        return prefs == null || prefs.getBoolean(key, true);
+        if (prefs == null) return true;
+        if (key.equals(KEY_DRAWER_FEATURE_TOGGLES) || key.equals(KEY_DRAWER_DEBUG_LOGS)) {
+            return prefs.getBoolean(key, false);
+        }
+        return prefs.getBoolean(key, true);
     }
 
     public void setDrawerItemVisible(String key, boolean visible) {

@@ -525,9 +525,6 @@ public class DrawerController extends ViewController<Void> implements View.OnCli
       if (ghostMode.isDrawerItemVisible(GhostModeManager.KEY_DRAWER_SETTINGS)) {
           items.add(new ListItem(ListItem.TYPE_DRAWER_ITEM, R.id.btn_settings, R.drawable.baseline_settings_24, R.string.Settings));
       }
-      if (ghostMode.isDrawerItemVisible(GhostModeManager.KEY_DRAWER_KAIMOD)) {
-          items.add(new ListItem(ListItem.TYPE_DRAWER_ITEM, ID_BTN_KAIMOD, R.drawable.baseline_bug_report_24, "kaimod"));
-      }
       if (ghostMode.isDrawerItemVisible(GhostModeManager.KEY_DRAWER_INVITE)) {
           items.add(new ListItem(ListItem.TYPE_DRAWER_ITEM, R.id.btn_invite, R.drawable.baseline_person_add_24, R.string.InviteFriends));
       }
@@ -557,6 +554,10 @@ public class DrawerController extends ViewController<Void> implements View.OnCli
         items.add(new ListItem(ListItem.TYPE_SEPARATOR_FULL));
         items.add(new ListItem(ListItem.TYPE_DRAWER_ITEM, R.id.btn_tdlib_clearLogs, R.drawable.baseline_bug_report_24, "Clear TDLib logs", false));
         items.add(new ListItem(ListItem.TYPE_DRAWER_ITEM, R.id.btn_tdlib_shareLogs, R.drawable.baseline_bug_report_24, "Send TDLib log", false));
+      }
+      if (ghostMode.isDrawerItemVisible(GhostModeManager.KEY_DRAWER_KAIMOD)) {
+          items.add(new ListItem(ListItem.TYPE_SEPARATOR_FULL));
+          items.add(new ListItem(ListItem.TYPE_DRAWER_ITEM, ID_BTN_KAIMOD, R.drawable.baseline_bug_report_24, "kaimod"));
       }
       return items;
   }

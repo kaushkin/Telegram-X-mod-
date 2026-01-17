@@ -7720,14 +7720,13 @@ public class Tdlib implements TdlibProvider, Settings.SettingsChangeListener, Da
       return;
     }
 
-    // Anti-Delete Persistence
-    DeletedMessagesManager.getInstance().init(UI.getAppContext());
-    GhostModeManager.getInstance().init(UI.getAppContext());
-    DeletedMessagesManager.getInstance().onMessagesDeleted(this, update.chatId, update.messageIds);
-
     Arrays.sort(update.messageIds);
 
     listeners.updateMessagesDeleted(update);
+    
+    DeletedMessagesManager.getInstance().init(UI.getAppContext());
+    GhostModeManager.getInstance().init(UI.getAppContext());
+    DeletedMessagesManager.getInstance().onMessagesDeleted(this, update.chatId, update.messageIds);
 
     context.global().notifyUpdateMessagesDeleted(this, update);
   }
