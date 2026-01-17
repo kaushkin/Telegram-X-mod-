@@ -4743,11 +4743,14 @@ public class Tdlib implements TdlibProvider, Settings.SettingsChangeListener, Da
     // Update local cache
     TdApi.Chat chat = chat(chatId);
     if (chat != null) {
+      if (chat.unreadCount == 0 && !chat.isMarkedAsUnread) {
+        return; // Already read, prevent recursive notification which causes crash in ReferenceList
+      }
       chat.unreadCount = 0;
       chat.isMarkedAsUnread = false;
+      // Notify UI
+      listeners().notifyChatReadLocally(chatId);
     }
-    // Notify UI
-    listeners().notifyChatReadLocally(chatId);
   }
 
   public void resendMessages (long chatId, long[] messageIds) {
