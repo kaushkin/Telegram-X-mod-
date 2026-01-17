@@ -51,6 +51,10 @@ public class DeletedMessagesManager {
             cached.content = content;
         }
     }
+    
+    public TdApi.Message getCachedMessage(long messageId) {
+        return messageCache.get(messageId);
+    }
 
     public static DeletedMessagesManager getInstance() {
         return INSTANCE;
@@ -62,6 +66,11 @@ public class DeletedMessagesManager {
         this.savedMessagesDir = new File(context.getExternalFilesDir(null), "deleted_msgs_v1");
         if (!savedMessagesDir.exists()) {
             savedMessagesDir.mkdirs();
+        }
+        // Initialize edit history dir
+        this.editHistoryDir = new File(context.getExternalFilesDir(null), "edit_history_v1");
+        if (!editHistoryDir.exists()) {
+            editHistoryDir.mkdirs();
         }
     }
  
@@ -83,6 +92,11 @@ public class DeletedMessagesManager {
             deleteRecursive(savedMessagesDir);
             savedMessagesDir.mkdirs();
         }
+        // Also clear edit history
+        if (editHistoryDir != null && editHistoryDir.exists()) {
+            deleteRecursive(editHistoryDir);
+            editHistoryDir.mkdirs();
+        }
     }
     
     private void deleteRecursive(File fileOrDirectory) {
@@ -90,6 +104,118 @@ public class DeletedMessagesManager {
             for (File child : fileOrDirectory.listFiles())
                 deleteRecursive(child);
         fileOrDirectory.delete();
+    }
+
+    // ============ EDIT HISTORY FEATURE ============
+    
+    private File editHistoryDir;
+    
+    public void initEditHistory(Context ctx) {
+        this.editHistoryDir = new File(ctx.getExternalFilesDir(null), "edit_history_v1");
+        if (!editHistoryDir.exists()) {
+            editHistoryDir.mkdirs();
+        }
+    }
+    
+    public boolean isEditHistoryEnabled() {
+        return prefs != null && prefs.getBoolean("edit_history_enabled", true);
+    }
+    
+    public void setEditHistoryEnabled(boolean enabled) {
+        if (prefs != null) {
+            prefs.edit().putBoolean("edit_history_enabled", enabled).apply();
+        }
+    }
+    
+    /**
+     * Save old content before message is updated.
+     * Called from Tdlib.updateMessageContent() BEFORE the content changes.
+     */
+    public void saveEditVersion(long chatId, long messageId, TdApi.MessageContent oldContent) {
+        if (!isEditHistoryEnabled() || editHistoryDir == null) return;
+        if (oldContent == null) return;
+        
+        try {
+            // Create directory for this message's history: edit_history_v1/{chatId}/{messageId}/
+            File chatDir = new File(editHistoryDir, String.valueOf(chatId));
+            File msgDir = new File(chatDir, String.valueOf(messageId));
+            if (!msgDir.exists()) msgDir.mkdirs();
+            
+            // Filename is timestamp to preserve order
+            long timestamp = System.currentTimeMillis();
+            File versionFile = new File(msgDir, timestamp + ".json");
+            
+            JSONObject json = new JSONObject();
+            json.put("timestamp", timestamp);
+            json.put("content", serializeContent(oldContent));
+            
+            FileWriter writer = new FileWriter(versionFile);
+            writer.write(json.toString());
+            writer.close();
+            
+            Log.i(TAG, "Saved edit version for message " + messageId);
+        } catch (Exception e) {
+            Log.e(TAG, "Failed to save edit version: " + e.getMessage());
+        }
+    }
+    
+    /**
+     * Get all previous versions of a message (for history viewer)
+     */
+    public List<EditHistoryEntry> getEditHistory(long chatId, long messageId) {
+        List<EditHistoryEntry> history = new ArrayList<>();
+        if (editHistoryDir == null) return history;
+        
+        File chatDir = new File(editHistoryDir, String.valueOf(chatId));
+        File msgDir = new File(chatDir, String.valueOf(messageId));
+        
+        if (!msgDir.exists()) return history;
+        
+        File[] files = msgDir.listFiles();
+        if (files == null) return history;
+        
+        // Sort by timestamp (filename)
+        java.util.Arrays.sort(files, (a, b) -> b.getName().compareTo(a.getName()));
+        
+        for (File f : files) {
+            try {
+                BufferedReader br = new BufferedReader(new FileReader(f));
+                StringBuilder sb = new StringBuilder();
+                String line;
+                while ((line = br.readLine()) != null) sb.append(line);
+                br.close();
+                
+                JSONObject json = (JSONObject) new JSONTokener(sb.toString()).nextValue();
+                long timestamp = json.getLong("timestamp");
+                TdApi.MessageContent content = deserializeContent(json.optJSONObject("content"));
+                
+                history.add(new EditHistoryEntry(timestamp, content));
+            } catch (Exception e) {
+                Log.e(TAG, "Error reading edit history: " + e.getMessage());
+            }
+        }
+        
+        return history;
+    }
+    
+    /**
+     * Entry class for edit history
+     */
+    public static class EditHistoryEntry {
+        public final long timestamp;
+        public final TdApi.MessageContent content;
+        
+        public EditHistoryEntry(long timestamp, TdApi.MessageContent content) {
+            this.timestamp = timestamp;
+            this.content = content;
+        }
+        
+        public String getContentText() {
+            if (content instanceof TdApi.MessageText) {
+                return ((TdApi.MessageText) content).text.text;
+            }
+            return "[unsupported content]";
+        }
     }
 
     public void saveMessage(long chatId, TdApi.Message message) {

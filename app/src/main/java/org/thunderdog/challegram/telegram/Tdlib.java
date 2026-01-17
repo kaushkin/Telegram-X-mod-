@@ -7448,7 +7448,17 @@ public class Tdlib implements TdlibProvider, Settings.SettingsChangeListener, Da
 
   @TdlibThread
   private void updateMessageContent (TdApi.UpdateMessageContent update) {
-    DeletedMessagesManager.getInstance().updateMessageContent(update.chatId, update.messageId, update.newContent);
+    // Save old content BEFORE updating cache (for edit history feature)
+    DeletedMessagesManager mgr = DeletedMessagesManager.getInstance();
+    if (mgr.isEditHistoryEnabled()) {
+      // Get old content from cache before it's overwritten
+      TdApi.Message cached = mgr.getCachedMessage(update.messageId);
+      if (cached != null && cached.content != null) {
+        mgr.saveEditVersion(update.chatId, update.messageId, cached.content);
+      }
+    }
+    // Now update the cache with new content
+    mgr.updateMessageContent(update.chatId, update.messageId, update.newContent);
     final TdApi.Chat chat;
     synchronized (dataLock) {
       chat = chats.get(update.chatId);

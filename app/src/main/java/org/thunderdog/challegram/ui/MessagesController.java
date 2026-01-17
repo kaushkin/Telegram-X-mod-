@@ -5793,8 +5793,43 @@ public class MessagesController extends ViewController<MessagesController.Argume
         editMessage(new MessageWithProperties(editingMessage, properties));
         return true;
       } else if (id == R.id.btn_messageEditHistory) {
-        // TODO: Implement full edit history view
-        UI.showToast("История изменений (editDate: " + selectedMessage.getMessage().editDate + ")", Toast.LENGTH_SHORT);
+        cancelSheduledKeyboardOpeningAndHideAllKeyboards();
+        // Get edit history for this message
+        java.util.List<DeletedMessagesManager.EditHistoryEntry> history = 
+            DeletedMessagesManager.getInstance().getEditHistory(
+                selectedMessage.getChatId(), 
+                selectedMessage.getId()
+            );
+        
+        if (history.isEmpty()) {
+          UI.showToast("История изменений пуста", Toast.LENGTH_SHORT);
+        } else {
+          // Build options list
+          int[] ids = new int[history.size()];
+          String[] options = new String[history.size()];
+          java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("dd.MM.yyyy HH:mm:ss", java.util.Locale.getDefault());
+          
+          for (int i = 0; i < history.size(); i++) {
+            DeletedMessagesManager.EditHistoryEntry entry = history.get(i);
+            ids[i] = i;
+            String dateStr = sdf.format(new java.util.Date(entry.timestamp));
+            String text = entry.getContentText();
+            // Truncate long text
+            if (text.length() > 50) {
+              text = text.substring(0, 50) + "...";
+            }
+            options[i] = dateStr + "\n" + text;
+          }
+          
+          showOptions("История изменений (" + history.size() + ")", ids, options, null, null, (itemView, optionId) -> {
+            if (optionId >= 0 && optionId < history.size()) {
+              // Show full text of selected version
+              DeletedMessagesManager.EditHistoryEntry entry = history.get(optionId);
+              UI.showToast(entry.getContentText(), Toast.LENGTH_LONG);
+            }
+            return true;
+          });
+        }
         return true;
       } else if (id == R.id.btn_messageShare) {
         cancelSheduledKeyboardOpeningAndHideAllKeyboards();
