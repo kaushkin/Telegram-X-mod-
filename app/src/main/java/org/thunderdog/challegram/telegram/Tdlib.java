@@ -404,13 +404,6 @@ public class Tdlib implements TdlibProvider, Settings.SettingsChangeListener, Da
       if (running) {
         long ms = SystemClock.uptimeMillis();
         if (object instanceof TdApi.Update) {
-          if (object.getConstructor() == TdApi.UpdateNewMessage.CONSTRUCTOR) {
-              TdApi.Message msg = ((TdApi.UpdateNewMessage) object).message;
-              if (msg != null && !msg.isOutgoing) {
-                  // Ghost Mode: Clear local read status on new incoming message so badge reappears
-                   GhostModeManager.getInstance().clearLocallyRead(msg.chatId);
-              }
-          }
           tdlib.processUpdate(this, (TdApi.Update) object);
         } else {
           Log.e("Invalid update type: %s", object);
@@ -4769,17 +4762,10 @@ public class Tdlib implements TdlibProvider, Settings.SettingsChangeListener, Da
     if (Log.isEnabled(Log.TAG_FCM)) {
       Log.i(Log.TAG_FCM, "[GHOST] setChatLocallyRead chatId:%d", chatId);
     }
-    // Update local cache
-    TdApi.Chat chat = chat(chatId);
-    if (chat != null) {
-      if (chat.unreadCount == 0 && !chat.isMarkedAsUnread) {
-        return; // Already read, prevent recursive notification which causes crash in ReferenceList
-      }
-      chat.unreadCount = 0;
-      chat.isMarkedAsUnread = false;
-      // Notify UI
-      listeners().notifyChatReadLocally(chatId);
-    }
+    // We do NOT modify chat.unreadCount directly anymore. 
+    // TGChat wrapper handles the offset subtraction for UI.
+    // We just notify UI to redraw the badge.
+    listeners().notifyChatReadLocally(chatId);
   }
 
   public void resendMessages (long chatId, long[] messageIds) {

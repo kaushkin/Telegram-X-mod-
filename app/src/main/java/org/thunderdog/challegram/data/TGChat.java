@@ -827,9 +827,12 @@ public class TGChat implements TdlibStatusManager.HelperTarget, ContentPreview.R
     } else if (getSource() != null) {
       return 0;
     } else {
-      // Ghost Mode: Show as read if marked locally read
-      if (chat != null && GhostModeManager.getInstance().isChatLocallyRead(chat.id)) {
-        return 0;
+      // Ghost Mode: Subtract offset (locally read messages) from real unread count
+      if (chat != null) {
+         int offset = GhostModeManager.getInstance().getChatUnreadOffset(chat.id);
+         if (offset > 0) {
+             return Math.max(0, chat.unreadCount - offset);
+         }
       }
       return chat.unreadCount > 0 ? chat.unreadCount : chat.isMarkedAsUnread ? Tdlib.CHAT_MARKED_AS_UNREAD : 0;
     }

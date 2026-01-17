@@ -23,133 +23,43 @@ public class GhostModeManager {
     private static final String KEY_DONT_ONLINE = "dont_online";
     private static final String KEY_READ_ON_INTERACT = "read_on_interact";
     
-    // Local read tracking - chats that appear locally read but not on server
-    private final Set<Long> locallyReadChats = new HashSet<>();
-    
-    public static GhostModeManager getInstance() {
-        return INSTANCE;
-    }
-    
-    public void init(Context context) {
-        this.prefs = context.getSharedPreferences(PREF_FILE, Context.MODE_PRIVATE);
-    }
-    
-    // ========== Global Ghost Mode Toggle ==========
-    
-    public boolean isGhostModeEnabled() {
-        return prefs != null && prefs.getBoolean(KEY_GHOST_ENABLED, false);
-    }
-    
-    public void setGhostModeEnabled(boolean enabled) {
-        if (prefs != null) {
-            prefs.edit().putBoolean(KEY_GHOST_ENABLED, enabled).apply();
-        }
-    }
-    
-    // ========== Individual Settings ==========
-    
-    /**
-     * Don't send read receipts (ViewMessages)
-     */
-    public boolean isDontReadEnabled() {
-        return prefs != null && prefs.getBoolean(KEY_DONT_READ, true);
-    }
-    
-    public void setDontReadEnabled(boolean enabled) {
-        if (prefs != null) {
-            prefs.edit().putBoolean(KEY_DONT_READ, enabled).apply();
-        }
-    }
-    
-    /**
-     * Don't send typing indicators (SendChatAction)
-     */
-    public boolean isDontTypeEnabled() {
-        return prefs != null && prefs.getBoolean(KEY_DONT_TYPE, true);
-    }
-    
-    public void setDontTypeEnabled(boolean enabled) {
-        if (prefs != null) {
-            prefs.edit().putBoolean(KEY_DONT_TYPE, enabled).apply();
-        }
-    }
-    
-    /**
-     * Don't show online status
-     */
-    public boolean isDontOnlineEnabled() {
-        return prefs != null && prefs.getBoolean(KEY_DONT_ONLINE, false);
-    }
-    
-    public void setDontOnlineEnabled(boolean enabled) {
-        if (prefs != null) {
-            prefs.edit().putBoolean(KEY_DONT_ONLINE, enabled).apply();
-        }
-    }
-    
-    /**
-     * Read messages when sending/reacting (bypass ghost mode when interacting)
-     */
-    public boolean isReadOnInteractEnabled() {
-        return prefs != null && prefs.getBoolean(KEY_READ_ON_INTERACT, true);
-    }
-    
-    public void setReadOnInteractEnabled(boolean enabled) {
-        if (prefs != null) {
-            prefs.edit().putBoolean(KEY_READ_ON_INTERACT, enabled).apply();
-        }
-    }
-    
-    // ========== Logic Helpers ==========
-    
-    /**
-     * Check if read receipt should be blocked
-     */
-    public boolean shouldBlockReadReceipt() {
-        return isGhostModeEnabled() && isDontReadEnabled();
-    }
-    
-    /**
-     * Check if typing indicator should be blocked
-     */
-    public boolean shouldBlockTyping() {
-        return isGhostModeEnabled() && isDontTypeEnabled();
-    }
-    
-    /**
-     * Check if online status should be hidden
-     */
-    public boolean shouldHideOnline() {
-        return isGhostModeEnabled() && isDontOnlineEnabled();
-    }
-    
-    /**
-     * Check if should read on interact (send message, reaction, etc.)
-     */
-    public boolean shouldReadOnInteract() {
-        return isGhostModeEnabled() && isReadOnInteractEnabled();
-    }
-    
+    // Local read tracking - map of chatId -> unread count offset (subtrahend)
+    private final Map<Long, Integer> chatUnreadOffsets = new ConcurrentHashMap<>();
+
+    // ... (Keep existing methods until we replace them)
+
     // ========== Local Read Tracking ==========
     
     /**
-     * Mark a chat as locally read (hide unread badge without notifying server)
+     * Mark a chat as locally read by saving the current unread count as an offset.
+     * @param chatId The chat ID
+     * @param currentUnreadCount The current unread count from TdApi.Chat
      */
-    public void markChatLocallyRead(long chatId) {
-        locallyReadChats.add(chatId);
+    public void markChatLocallyRead(long chatId, int currentUnreadCount) {
+        if (currentUnreadCount > 0) {
+            chatUnreadOffsets.put(chatId, currentUnreadCount);
+        }
     }
     
     /**
-     * Check if chat is marked as locally read
+     * Get the subtrahend (offset) for the unread count calculation
+     */
+    public int getChatUnreadOffset(long chatId) {
+        Integer offset = chatUnreadOffsets.get(chatId);
+        return offset != null ? offset : 0;
+    }
+
+    /**
+     * Check if chat is marked as locally read (has an offset)
      */
     public boolean isChatLocallyRead(long chatId) {
-        return locallyReadChats.contains(chatId);
+        return chatUnreadOffsets.containsKey(chatId);
     }
     
     /**
-     * Clear locally read status for a chat (when actually read on server)
+     * Clear locally read status for a chat
      */
     public void clearLocallyRead(long chatId) {
-        locallyReadChats.remove(chatId);
+        chatUnreadOffsets.remove(chatId);
     }
 }

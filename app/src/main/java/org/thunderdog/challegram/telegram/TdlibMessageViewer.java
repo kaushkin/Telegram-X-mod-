@@ -769,7 +769,11 @@ public class TdlibMessageViewer {
       if (org.thunderdog.challegram.data.GhostModeManager.getInstance().shouldBlockReadReceipt()) {
         if (forceRead) {
           // Mark as locally read so unread badge disappears (updates TdApi.Chat and notifies UI)
-          org.thunderdog.challegram.data.GhostModeManager.getInstance().markChatLocallyRead(chatId);
+          // We save the CURRENT unread count as the offset
+          TdApi.Chat chat = context.tdlib.chat(chatId);
+          if (chat != null) {
+              org.thunderdog.challegram.data.GhostModeManager.getInstance().markChatLocallyRead(chatId, chat.unreadCount);
+          }
           context.tdlib.setChatLocallyRead(chatId);
         }
         if (after != null) {

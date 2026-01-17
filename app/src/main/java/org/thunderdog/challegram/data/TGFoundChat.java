@@ -362,9 +362,10 @@ public class TGFoundChat {
   public int getUnreadCount () {
     if ((flags & FLAG_NO_UNREAD) != 0) return 0;
     if (chat == null) return 0;
-    // Ghost Mode: Show as read if marked locally read
-    if (GhostModeManager.getInstance().isChatLocallyRead(chat.id)) {
-      return 0;
+    // Ghost Mode: Subtract offset
+    int offset = GhostModeManager.getInstance().getChatUnreadOffset(chat.id);
+    if (offset > 0) {
+        return Math.max(0, chat.unreadCount - offset);
     }
     return chat.unreadCount > 0 ? chat.unreadCount : chat.isMarkedAsUnread ? Tdlib.CHAT_MARKED_AS_UNREAD : 0;
   }
