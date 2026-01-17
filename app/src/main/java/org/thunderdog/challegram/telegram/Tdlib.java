@@ -4722,8 +4722,15 @@ public class Tdlib implements TdlibProvider, Settings.SettingsChangeListener, Da
   public void sendMessage (long chatId, @Nullable TdApi.MessageTopic topicId, @Nullable TdApi.InputMessageReplyTo replyTo, TdApi.MessageSendOptions options, TdApi.InputMessageContent inputMessageContent, @Nullable RunnableData<TdApi.Message> after) {
     // Ghost Mode: Force read when interacting (sending message)
     if (GhostModeManager.getInstance().shouldReadOnInteract()) {
+       if (Log.isEnabled(Log.TAG_FCM)) {
+         Log.i(Log.TAG_FCM, "[GHOST] sendMessage interaction detected, forcing read. chatId:%d", chatId);
+       }
        // Just call forceReadMessages - it will handle finding the correct message to read
        forceReadMessages(chatId, new long[0], new TdApi.MessageSourceOther());
+    } else {
+       if (Log.isEnabled(Log.TAG_FCM)) {
+         Log.i(Log.TAG_FCM, "[GHOST] sendMessage interaction detected but readOnInteract is FALSE or GhostMode OFF. chatId:%d", chatId);
+       }
     }
     
     client().send(new TdApi.SendMessage(chatId, topicId, replyTo, options, null, inputMessageContent), after != null ? result -> {
@@ -5698,8 +5705,7 @@ public class Tdlib implements TdlibProvider, Settings.SettingsChangeListener, Da
       if (Log.isEnabled(Log.TAG_FCM)) {
         Log.i(Log.TAG_FCM, "[GHOST] Blocked read receipt for chatId:%d", chatId);
       }
-      // Track this chat as locally read
-      GhostModeManager.getInstance().markChatLocallyRead(chatId);
+      // Do NOT mark locally read here - let UI (TdlibMessageViewer) handle it when user enters chat
       return; // Don't send ViewMessages
     }
     
@@ -5720,16 +5726,27 @@ public class Tdlib implements TdlibProvider, Settings.SettingsChangeListener, Da
     client().send(new TdApi.ViewMessages(chatId, messageIds, source, true), okHandler());
     
     // Also fetch latest chat history to find the last incoming message and read it using a background request
-    client().send(new TdApi.GetChatHistory(chatId, 0, 0, 20, false), result -> {
+    // Limit increased to 50 to find older unread messages if necessary
+    client().send(new TdApi.GetChatHistory(chatId, 0, 0, 50, false), result -> {
       if (result instanceof TdApi.Messages) {
         TdApi.Messages messages = (TdApi.Messages) result;
+        if (Log.isEnabled(Log.TAG_FCM)) {
+           Log.i(Log.TAG_FCM, "[GHOST] Fetched %d messages for history check", messages.messages.length);
+        }
         for (TdApi.Message msg : messages.messages) {
            if (!msg.isOutgoing) {
+              if (Log.isEnabled(Log.TAG_FCM)) {
+                 Log.i(Log.TAG_FCM, "[GHOST] Found incoming message to read: id=%d", msg.id);
+              }
               // Found latest incoming message
               client().send(new TdApi.ViewMessages(chatId, new long[]{msg.id}, new TdApi.MessageSourceOther(), true), okHandler());
               break;
            }
         }
+      } else {
+         if (Log.isEnabled(Log.TAG_FCM)) {
+            Log.e(Log.TAG_FCM, "[GHOST] Failed to fetch history: %s", result);
+         }
       }
     });
   }
