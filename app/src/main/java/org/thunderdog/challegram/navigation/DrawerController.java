@@ -933,7 +933,7 @@ public class DrawerController extends ViewController<Void> implements View.OnCli
         GhostSettingsController controller = new GhostSettingsController(context, context.currentTdlib());
         UI.navigateTo(controller);
     } else if (viewId == R.id.btn_developer) {
-        Intents.openTelegramLink(context, "pvumu");
+        tdlib().ui().openUrl(this, "https://t.me/pvumu", new TdlibUi.UrlOpenParameters());
     }
   }
 
