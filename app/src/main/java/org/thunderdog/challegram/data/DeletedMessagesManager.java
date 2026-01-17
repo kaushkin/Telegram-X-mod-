@@ -27,8 +27,9 @@ public class DeletedMessagesManager { // Sync fix
     private static final DeletedMessagesManager INSTANCE = new DeletedMessagesManager();
     private File savedMessagesDir;
     
-    // Cache for 5000 messages to survive 404 errors
-    private final LruCache<Long, TdApi.Message> messageCache = new LruCache<>(5000);
+    // Cache helper: Store recent messages to grab content when deleted
+    // Limit to 500 messages to prevent memory leak
+    private final LruCache<Long, TdApi.Message> messageCache = new LruCache<>(500);
     private final Set<Long> deletedMessageIds = Collections.synchronizedSet(new HashSet<>());
 
     private DeletedMessagesManager() {
