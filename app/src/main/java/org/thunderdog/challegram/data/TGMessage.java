@@ -5154,6 +5154,7 @@ public abstract class TGMessage implements InvalidateContentProvider, TdlibDeleg
   }
 
   public boolean canBeSelected () {
+    if (isGhostMessage) return true;
     return (!isNotSent() || canResend()) && (flags & FLAG_UNSUPPORTED) == 0 && allowInteraction() && !isSponsoredMessage() && !messagesController().inSearchMode();
   }
 
@@ -5167,6 +5168,7 @@ public abstract class TGMessage implements InvalidateContentProvider, TdlibDeleg
   }
 
   public boolean canBeForwarded () {
+    if (isGhostMessage) return true;
     TdApi.MessageProperties properties = lastMessageProperties();
     return properties.canBeForwarded && (msg.content.getConstructor() != TdApi.MessageLocation.CONSTRUCTOR || ((TdApi.MessageLocation) msg.content).expiresIn == 0) && !isEventLog();
   }
