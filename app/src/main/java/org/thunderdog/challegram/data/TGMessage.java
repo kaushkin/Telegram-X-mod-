@@ -5244,8 +5244,6 @@ public abstract class TGMessage implements InvalidateContentProvider, TdlibDeleg
         if (deleted) {
             isGhostMessage = false;
             isGhost.setCount(0, false);
-            // Mark as destroyed to remove from view
-            flags |= FLAG_SELF_DESTROYED;
         }
     }
 
