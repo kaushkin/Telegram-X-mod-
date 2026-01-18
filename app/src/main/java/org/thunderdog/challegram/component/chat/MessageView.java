@@ -645,7 +645,9 @@ public class MessageView extends SparseDrawableView implements Destroyable, Draw
     Object tag = null;
 
     // Ghost Messages (Deleted)
+    android.util.Log.e("ANTIDELETE", "fillMessageOptions: isGhost=" + msg.isGhost() + " messageId=" + msg.getId());
     if (msg.isGhost()) {
+      android.util.Log.e("ANTIDELETE", "Adding ghost menu options");
       // Reply
       if (!isMore && m.canWriteMessagesOrWaitingForReply()) {
         ids.append(R.id.btn_messageReply);

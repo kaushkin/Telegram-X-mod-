@@ -5239,6 +5239,15 @@ public abstract class TGMessage implements InvalidateContentProvider, TdlibDeleg
     public final boolean isGhost() {
         return isGhostMessage;
     }
+    
+    public final void setIsGhostDeleted(boolean deleted) {
+        if (deleted) {
+            isGhostMessage = false;
+            isGhost.setCount(0, false);
+            // Mark as destroyed to remove from view
+            flags |= FLAG_SELF_DESTROYED;
+        }
+    }
 
   public boolean canMarkAsViewed () {
     return msg.id != 0 && msg.chatId != 0 && (flags & FLAG_VIEWED) == 0;
@@ -5755,6 +5764,10 @@ public abstract class TGMessage implements InvalidateContentProvider, TdlibDeleg
   }
 
   public boolean canReplyTo () {
+    // Ghost messages can be replied to
+    if (isGhostMessage) {
+      return allowInteraction();
+    }
     return TD.canReplyTo(msg) && allowInteraction();
   }
 

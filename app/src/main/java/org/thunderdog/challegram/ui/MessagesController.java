@@ -5681,7 +5681,9 @@ public class MessagesController extends ViewController<MessagesController.Argume
         cancelSheduledKeyboardOpeningAndHideAllKeyboards();
         long messageId = selectedMessage.getId();
         org.thunderdog.challegram.data.DeletedMessagesManager.getInstance().deleteGhostMessage(messageId);
-        // Message will disappear on next chat refresh
+        selectedMessage.setIsGhostDeleted(true);
+        selectedMessage.requestLayout();
+        closeSelectMode();
         return true;
       } else if (id == R.id.btn_messageReport) {
         cancelSheduledKeyboardOpeningAndHideAllKeyboards();
