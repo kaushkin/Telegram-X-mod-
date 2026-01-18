@@ -5157,6 +5157,10 @@ public class MessagesController extends ViewController<MessagesController.Argume
     }
     if (selectedMessageIds.size() == 1) {
       MessageWithProperties m = getSingleSelectedMessage();
+      // Ghost messages can always be copied
+      if (selectedMessageIds.valueAt(0).isGhost()) {
+        return TD.canCopyText(m.message);
+      }
       return m.message.canBeSaved && TD.canCopyText(m.message);
     }
     for (int i = 0; i < selectedMessageIds.size(); i++) {
@@ -5178,6 +5182,10 @@ public class MessagesController extends ViewController<MessagesController.Argume
       for (int i = 0; i < size; i++) {
         long messageId = selectedMessageIds.keyAt(i);
         TGMessage m = selectedMessageIds.valueAt(i);
+        // Ghost messages can always be deleted from local DB
+        if (m.isGhost()) {
+          continue;
+        }
         TdApi.Message msg = m.getMessage(messageId);
         TdApi.MessageProperties properties = m.lastMessageProperties(messageId);
         if (msg == null || (!properties.canBeDeletedForAllUsers && !properties.canBeDeletedOnlyForSelf)) {
@@ -5285,6 +5293,10 @@ public class MessagesController extends ViewController<MessagesController.Argume
       for (int i = 0; i < size; i++) {
         long messageId = selectedMessageIds.keyAt(i);
         TGMessage m = selectedMessageIds.valueAt(i);
+        // Ghost messages can always be forwarded
+        if (m.isGhost()) {
+          continue;
+        }
         TdApi.Message msg = m.getMessage(messageId);
         if (msg == null || !m.lastMessageProperties(messageId).canBeForwarded) {
           return false;
