@@ -491,7 +491,10 @@ public class DeletedMessagesManager { // Sync fix
         
         if (savedMessagesDir == null) return;
         
-        for (File chatDir : new File(savedMessagesDir).listFiles()) {
+        File[] chatDirs = savedMessagesDir.listFiles();
+        if (chatDirs == null) return;
+        
+        for (File chatDir : chatDirs) {
             if (chatDir != null && chatDir.isDirectory()) {
                 File msgFile = new File(chatDir, messageId + ".json");
                 if (msgFile.exists()) {
