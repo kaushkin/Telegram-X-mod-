@@ -8895,11 +8895,17 @@ public abstract class TGMessage implements InvalidateContentProvider, TdlibDeleg
     if (canReply) {
       replyButton = new SwipeQuickAction(replyText, iQuickReply, () -> {
         TdApi.Message message = getNewestMessage();
-        getMessageProperties(message.id, properties -> {
-          runOnUiThreadOptional(() -> {
-            messagesController().showReply(new MessageWithProperties(message, properties), null, 0, true, true);
+        if (isGhost()) {
+          TdApi.MessageProperties properties = new TdApi.MessageProperties();
+          properties.canBeReplied = true;
+          messagesController().showReply(new MessageWithProperties(message, properties), null, 0, true, true);
+        } else {
+          getMessageProperties(message.id, properties -> {
+            runOnUiThreadOptional(() -> {
+              messagesController().showReply(new MessageWithProperties(message, properties), null, 0, true, true);
+            });
           });
-        });
+        }
       }, true, false);
       rightActions.add(replyButton);
     }

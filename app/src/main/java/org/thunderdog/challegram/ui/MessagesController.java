@@ -3871,9 +3871,13 @@ public class MessagesController extends ViewController<MessagesController.Argume
             TGMessage m = selectedMessageIds.valueAt(i);
             if (m.isGhost()) {
               org.thunderdog.challegram.data.DeletedMessagesManager.getInstance().deleteGhostMessage(messageId);
+              m.setIsGhostDeleted(true);
+              m.onDestroy();
             }
           }
           finishSelectMode(-1);
+          // Refresh list to hide destroyed messages
+          updateList(true);
         } else {
           final int size = selectedMessageIds.size();
           final MessageWithProperties[] messages = new MessageWithProperties[size];
