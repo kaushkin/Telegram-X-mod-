@@ -4348,7 +4348,7 @@ public abstract class TGMessage implements InvalidateContentProvider, TdlibDeleg
   }
 
   public int getHeight () {
-    return height;
+    return isDestroyed ? 0 : height;
   }
 
   public int getContentX () {

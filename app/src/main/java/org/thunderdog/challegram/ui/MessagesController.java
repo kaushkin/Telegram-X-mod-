@@ -3877,7 +3877,9 @@ public class MessagesController extends ViewController<MessagesController.Argume
           }
           finishSelectMode(-1);
           // Refresh list to hide destroyed messages
-          updateList(true);
+          if (manager != null) {
+              manager.getAdapter().notifyDataSetChanged();
+          }
         } else {
           final int size = selectedMessageIds.size();
           final MessageWithProperties[] messages = new MessageWithProperties[size];
