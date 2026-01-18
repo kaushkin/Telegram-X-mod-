@@ -464,6 +464,22 @@ public class DeletedMessagesManager { // Sync fix
         return result;
     }
 
+    public boolean isMessageDeleted(long messageId) {
+        return deletedMessageIds.contains(messageId);
+    }
+
+    public String getDeletedMessageText(long messageId) {
+        TdApi.Message cached = messageCache.get(messageId);
+        if (cached == null) return null;
+        
+        if (cached.content instanceof TdApi.MessageText) {
+            TdApi.MessageText textContent = (TdApi.MessageText) cached.content;
+            return textContent.text != null ? textContent.text.text : null;
+        }
+        
+        return null;
+    }
+
     private final Map<Long, Long> lastDeletedMessageIds = Collections.synchronizedMap(new HashMap<>());
 
     public void onMessagesDeleted(final org.thunderdog.challegram.telegram.Tdlib tdlib, final long chatId, final long[] messageIds) {

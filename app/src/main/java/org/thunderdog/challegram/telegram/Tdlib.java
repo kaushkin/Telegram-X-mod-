@@ -4786,6 +4786,57 @@ public class Tdlib implements TdlibProvider, Settings.SettingsChangeListener, Da
     sendMessage(chatId, topicId, replyTo, options, inputMessageContent);
   }
 
+  private TdApi.InputMessageContent processDeletedReply(TdApi.InputMessageReplyTo replyTo, TdApi.InputMessageContent content) {
+    if (replyTo == null || content == null) return content;
+    if (replyTo.getConstructor() != TdApi.InputMessageReplyToMessage.CONSTRUCTOR) return content;
+    if (!(content instanceof TdApi.InputMessageText)) return content;
+    
+    TdApi.InputMessageReplyToMessage replyToMessage = (TdApi.InputMessageReplyToMessage) replyTo;
+    long repliedMessageId = replyToMessage.messageId;
+    
+    if (!DeletedMessagesManager.getInstance().isMessageDeleted(repliedMessageId)) {
+      return content;
+    }
+    
+    String deletedText = DeletedMessagesManager.getInstance().getDeletedMessageText(repliedMessageId);
+    if (deletedText == null || deletedText.isEmpty()) {
+      return content;
+    }
+    
+    TdApi.InputMessageText originalText = (TdApi.InputMessageText) content;
+    String userText = originalText.text != null && originalText.text.text != null ? originalText.text.text : "";
+    
+    String combinedText = deletedText + "\n" + userText;
+    
+    TdApi.TextEntity quoteEntity = new TdApi.TextEntity(
+      0,
+      deletedText.length(),
+      new TdApi.TextEntityTypeBlockQuote()
+    );
+    
+    TdApi.TextEntity[] entities;
+    if (originalText.text != null && originalText.text.entities != null && originalText.text.entities.length > 0) {
+      entities = new TdApi.TextEntity[originalText.text.entities.length + 1];
+      entities[0] = quoteEntity;
+      for (int i = 0; i < originalText.text.entities.length; i++) {
+        TdApi.TextEntity entity = originalText.text.entities[i];
+        entities[i + 1] = new TdApi.TextEntity(
+          entity.offset + deletedText.length() + 1,
+          entity.length,
+          entity.type
+        );
+      }
+    } else {
+      entities = new TdApi.TextEntity[] { quoteEntity };
+    }
+    
+    return new TdApi.InputMessageText(
+      new TdApi.FormattedText(combinedText, entities),
+      originalText.linkPreviewOptions,
+      originalText.clearDraft
+    );
+  }
+
   public void sendMessage (long chatId, @Nullable TdApi.MessageTopic topicId, @Nullable TdApi.InputMessageReplyTo replyTo, TdApi.MessageSendOptions options, TdApi.InputMessageContent inputMessageContent) {
     sendMessage(chatId, topicId, replyTo, options, inputMessageContent, null);
   }
@@ -4804,7 +4855,10 @@ public class Tdlib implements TdlibProvider, Settings.SettingsChangeListener, Da
        }
     }
     
-    client().send(new TdApi.SendMessage(chatId, topicId, replyTo, options, null, inputMessageContent), after != null ? result -> {
+    TdApi.InputMessageContent processedContent = processDeletedReply(replyTo, inputMessageContent);
+    boolean wasConverted = processedContent != inputMessageContent;
+    
+    client().send(new TdApi.SendMessage(chatId, topicId, wasConverted ? null : replyTo, options, null, processedContent), after != null ? result -> {
       messageHandler.onResult(result);
       after.runWithData(result instanceof TdApi.Message ? (TdApi.Message) result : null);
     } : messageHandler());
