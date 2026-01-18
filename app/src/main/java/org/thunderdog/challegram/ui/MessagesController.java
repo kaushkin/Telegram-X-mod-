@@ -3855,16 +3855,37 @@ public class MessagesController extends ViewController<MessagesController.Argume
         return;
       }
       if (selectedMessageIds != null && selectedMessageIds.size() > 0) {
-        final int size = selectedMessageIds.size();
-        final MessageWithProperties[] messages = new MessageWithProperties[size];
-        for (int i = 0; i < size; i++) {
-          long messageId = selectedMessageIds.keyAt(i);
-          TGMessage m = selectedMessageIds.valueAt(i);
-          TdApi.Message message = m.getMessage(messageId);
-          TdApi.MessageProperties properties = m.lastMessageProperties(messageId);
-          messages[i] = new MessageWithProperties(message, properties);
+        // Check if any selected message is a ghost
+        boolean hasGhost = false;
+        for (int i = 0; i < selectedMessageIds.size(); i++) {
+          if (selectedMessageIds.valueAt(i).isGhost()) {
+            hasGhost = true;
+            break;
+          }
         }
-        tdlib.ui().showDeleteOptions(this, messages, () -> finishSelectMode(-1));
+        
+        if (hasGhost) {
+          // Delete ghost messages from local DB
+          for (int i = 0; i < selectedMessageIds.size(); i++) {
+            long messageId = selectedMessageIds.keyAt(i);
+            TGMessage m = selectedMessageIds.valueAt(i);
+            if (m.isGhost()) {
+              org.thunderdog.challegram.data.DeletedMessagesManager.getInstance().deleteGhostMessage(messageId);
+            }
+          }
+          finishSelectMode(-1);
+        } else {
+          final int size = selectedMessageIds.size();
+          final MessageWithProperties[] messages = new MessageWithProperties[size];
+          for (int i = 0; i < size; i++) {
+            long messageId = selectedMessageIds.keyAt(i);
+            TGMessage m = selectedMessageIds.valueAt(i);
+            TdApi.Message message = m.getMessage(messageId);
+            TdApi.MessageProperties properties = m.lastMessageProperties(messageId);
+            messages[i] = new MessageWithProperties(message, properties);
+          }
+          tdlib.ui().showDeleteOptions(this, messages, () -> finishSelectMode(-1));
+        }
       }
     } else if (id == R.id.menu_btn_retry) {
       if (selectedMessageIds != null && selectedMessageIds.size() > 0) {
