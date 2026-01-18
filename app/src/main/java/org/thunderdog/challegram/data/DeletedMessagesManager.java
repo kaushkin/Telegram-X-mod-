@@ -465,16 +465,21 @@ public class DeletedMessagesManager { // Sync fix
     }
 
     public boolean isMessageDeleted(long messageId) {
-        return deletedMessageIds.contains(messageId);
+        boolean isDeleted = deletedMessageIds.contains(messageId);
+        android.util.Log.e(TAG, "isMessageDeleted(" + messageId + ") = " + isDeleted + ", deletedMessageIds size: " + deletedMessageIds.size());
+        return isDeleted;
     }
 
     public String getDeletedMessageText(long messageId) {
         TdApi.Message cached = messageCache.get(messageId);
+        android.util.Log.e(TAG, "getDeletedMessageText(" + messageId + ") cached=" + (cached != null));
         if (cached == null) return null;
         
         if (cached.content instanceof TdApi.MessageText) {
             TdApi.MessageText textContent = (TdApi.MessageText) cached.content;
-            return textContent.text != null ? textContent.text.text : null;
+            String text = textContent.text != null ? textContent.text.text : null;
+            android.util.Log.e(TAG, "Deleted message text: " + text);
+            return text;
         }
         
         return null;

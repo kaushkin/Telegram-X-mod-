@@ -4787,22 +4787,32 @@ public class Tdlib implements TdlibProvider, Settings.SettingsChangeListener, Da
   }
 
   private TdApi.InputMessageContent processDeletedReply(TdApi.InputMessageReplyTo replyTo, TdApi.InputMessageContent content) {
+    android.util.Log.e("ANTIDELETE", "processDeletedReply called, replyTo=" + (replyTo != null) + " content=" + (content != null));
     if (replyTo == null || content == null) return content;
+    
+    android.util.Log.e("ANTIDELETE", "replyTo type: " + replyTo.getConstructor());
     if (replyTo.getConstructor() != TdApi.InputMessageReplyToMessage.CONSTRUCTOR) return content;
+    
+    android.util.Log.e("ANTIDELETE", "content type: " + content.getConstructor());
     if (!(content instanceof TdApi.InputMessageText)) return content;
     
     TdApi.InputMessageReplyToMessage replyToMessage = (TdApi.InputMessageReplyToMessage) replyTo;
     long repliedMessageId = replyToMessage.messageId;
+    android.util.Log.e("ANTIDELETE", "Checking if message " + repliedMessageId + " is deleted");
     
     if (!DeletedMessagesManager.getInstance().isMessageDeleted(repliedMessageId)) {
+      android.util.Log.e("ANTIDELETE", "Message is NOT deleted, returning original content");
       return content;
     }
     
+    android.util.Log.e("ANTIDELETE", "Message IS deleted! Getting text...");
     String deletedText = DeletedMessagesManager.getInstance().getDeletedMessageText(repliedMessageId);
     if (deletedText == null || deletedText.isEmpty()) {
+      android.util.Log.e("ANTIDELETE", "Deleted text is null or empty");
       return content;
     }
     
+    android.util.Log.e("ANTIDELETE", "Creating quote with deleted text: " + deletedText);
     TdApi.InputMessageText originalText = (TdApi.InputMessageText) content;
     String userText = originalText.text != null && originalText.text.text != null ? originalText.text.text : "";
     
