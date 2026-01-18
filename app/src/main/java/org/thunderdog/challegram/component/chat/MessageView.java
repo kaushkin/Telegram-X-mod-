@@ -661,11 +661,9 @@ public class MessageView extends SparseDrawableView implements Destroyable, Draw
       }
 
       // Forward
-      if (Config.isForwardingEnabled()) {
-        ids.append(R.id.btn_messageShare);
-        strings.append(R.string.Share);
-        icons.append(R.drawable.baseline_forward_24);
-      }
+      ids.append(R.id.btn_messageShare);
+      strings.append(R.string.Share);
+      icons.append(R.drawable.baseline_forward_24);
 
       // Delete (Local)
       ids.append(R.id.btn_messageDelete);
