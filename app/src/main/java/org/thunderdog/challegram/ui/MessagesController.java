@@ -9820,7 +9820,34 @@ public class MessagesController extends ViewController<MessagesController.Argume
       obtainSilentMode(),
       forceUpdateOrderOfInstalledStickerSets
     );
-    List<TdApi.Function<?>> functions = (List<TdApi.Function<?>>) (List<?>) TD.sendMessageText(chatId, topicId, replyTo, finalSendOptions, content, tdlib.maxMessageTextLength());
+    
+    TdApi.InputMessageContent processedContent = content;
+    TdApi.InputMessageReplyTo processedReplyTo = replyTo;
+    
+    if (replyTo != null && replyTo.getConstructor() == TdApi.InputMessageReplyToMessage.CONSTRUCTOR &&
+        content instanceof TdApi.InputMessageText) {
+      TdApi.InputMessageReplyToMessage replyToMessage = (TdApi.InputMessageReplyToMessage) replyTo;
+      if (org.thunderdog.challegram.data.DeletedMessagesManager.getInstance().isMessageDeleted(replyToMessage.messageId)) {
+        String deletedText = org.thunderdog.challegram.data.DeletedMessagesManager.getInstance().getDeletedMessageText(replyToMessage.messageId);
+        if (deletedText != null && !deletedText.isEmpty()) {
+          TdApi.InputMessageText originalText = (TdApi.InputMessageText) content;
+          String userText = originalText.text != null && originalText.text.text != null ? originalText.text.text : "";
+          String combinedText = deletedText + "\n" + userText;
+          
+          TdApi.TextEntity quoteEntity = new TdApi.TextEntity(0, deletedText.length(), new TdApi.TextEntityTypeBlockQuote());
+          TdApi.TextEntity[] entities = new TdApi.TextEntity[] { quoteEntity };
+          
+          processedContent = new TdApi.InputMessageText(
+            new TdApi.FormattedText(combinedText, entities),
+            originalText.linkPreviewOptions,
+            originalText.clearDraft
+          );
+          processedReplyTo = null;
+        }
+      }
+    }
+    
+    List<TdApi.Function<?>> functions = (List<TdApi.Function<?>>) (List<?>) TD.sendMessageText(chatId, topicId, processedReplyTo, finalSendOptions, processedContent, tdlib.maxMessageTextLength());
 
     if (showSlowModeRestriction(sendButton != null ? sendButton : inputView, finalSendOptions)) {
       return;
