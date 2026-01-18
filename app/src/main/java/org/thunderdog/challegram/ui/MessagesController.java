@@ -5677,6 +5677,12 @@ public class MessagesController extends ViewController<MessagesController.Argume
         cancelSheduledKeyboardOpeningAndHideAllKeyboards();
         tdlib.ui().showDeleteOptions(this, selectedMessage.getAllMessagesAndProperties(), null);
         return true;
+      } else if (id == R.id.btn_messageDeleteGhost) {
+        cancelSheduledKeyboardOpeningAndHideAllKeyboards();
+        long messageId = selectedMessage.getId();
+        org.thunderdog.challegram.data.DeletedMessagesManager.getInstance().deleteGhostMessage(messageId);
+        manager.removeMessageByMessageId(messageId, true);
+        return true;
       } else if (id == R.id.btn_messageReport) {
         cancelSheduledKeyboardOpeningAndHideAllKeyboards();
         if (selectedMessage.isSponsoredMessage()) {

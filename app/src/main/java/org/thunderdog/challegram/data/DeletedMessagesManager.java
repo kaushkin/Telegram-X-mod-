@@ -484,6 +484,24 @@ public class DeletedMessagesManager { // Sync fix
         
         return null;
     }
+    
+    public void deleteGhostMessage(long messageId) {
+        messageCache.remove(messageId);
+        deletedMessageIds.remove(messageId);
+        
+        if (savedMessagesDir == null) return;
+        
+        for (File chatDir : new File(savedMessagesDir).listFiles()) {
+            if (chatDir != null && chatDir.isDirectory()) {
+                File msgFile = new File(chatDir, messageId + ".json");
+                if (msgFile.exists()) {
+                    msgFile.delete();
+                    android.util.Log.e(TAG, "Deleted ghost message file: " + messageId);
+                    return;
+                }
+            }
+        }
+    }
 
     private final Map<Long, Long> lastDeletedMessageIds = Collections.synchronizedMap(new HashMap<>());
 
