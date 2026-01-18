@@ -645,37 +645,34 @@ public class MessageView extends SparseDrawableView implements Destroyable, Draw
     Object tag = null;
 
     // Ghost Messages (Deleted)
-    android.util.Log.e("ANTIDELETE", "fillMessageOptions: isGhost=" + msg.isGhost() + " messageId=" + msg.getId());
+    android.util.Log.e("ANTIDELETE", "fillMessageOptions: isGhost=" + msg.isGhost() + " messageId=" + msg.getId() + " isMore=" + isMore);
     if (msg.isGhost()) {
-      android.util.Log.e("ANTIDELETE", "Adding ghost menu options");
+      android.util.Log.e("ANTIDELETE", "Adding ghost menu options, isMore=" + isMore);
       // Reply
-      if (!isMore && m.canWriteMessagesOrWaitingForReply()) {
+      if (m.canWriteMessagesOrWaitingForReply()) {
         ids.append(R.id.btn_messageReply);
         strings.append(R.string.Reply);
         icons.append(R.drawable.baseline_reply_24);
       }
       
       // Copy (if text message)
-      if (!isMore && content instanceof TdApi.MessageText) {
+      if (content instanceof TdApi.MessageText) {
         ids.append(R.id.btn_messageCopy);
         strings.append(R.string.Copy);
         icons.append(R.drawable.baseline_content_copy_24);
       }
       
       // Forward
-      if (!isMore) {
-        ids.append(R.id.btn_messageShare);
-        strings.append(R.string.Share);
-        icons.append(R.drawable.baseline_forward_24);
-      }
+      ids.append(R.id.btn_messageShare);
+      strings.append(R.string.Share);
+      icons.append(R.drawable.baseline_forward_24);
       
       // Delete from DB
-      if (!isMore) {
-        ids.append(R.id.btn_messageDeleteGhost);
-        strings.append(R.string.Delete);
-        icons.append(R.drawable.baseline_delete_24);
-      }
+      ids.append(R.id.btn_messageDeleteGhost);
+      strings.append(R.string.Delete);
+      icons.append(R.drawable.baseline_delete_24);
       
+      android.util.Log.e("ANTIDELETE", "Ghost menu items added: " + ids.size());
       return null;
     }
 
