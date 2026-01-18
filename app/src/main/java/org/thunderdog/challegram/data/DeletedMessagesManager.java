@@ -358,57 +358,82 @@ public class DeletedMessagesManager { // Sync fix
         }
     }
 
+    // Cache for lists of deleted messages per chat to avoid disk reads
+    private final Map<Long, List<TdApi.Message>> chatDeletedMessagesCache = new java.util.concurrent.ConcurrentHashMap<>();
+
+    // ... (existing code) ...
+
     public void saveMessage(long chatId, TdApi.Message message) {
-        if (savedMessagesDir == null) return;
-        
-        try {
-            File chatDir = new File(savedMessagesDir, String.valueOf(chatId));
-            if (!chatDir.exists()) chatDir.mkdirs();
-
-            JSONObject json = new JSONObject();
-            json.put("id", message.id);
-            json.put("chatId", message.chatId);
-            json.put("senderId", serializeSender(message.senderId));
-            json.put("date", message.date);
-            json.put("editDate", message.editDate);
-            json.put("isOutgoing", message.isOutgoing);
-            json.put("content", serializeContent(message.content, message.chatId, message.id));
-
-            // Mark as locally deleted (Ghost)
-            json.put("is_ghost", true);
-
-            File msgFile = new File(chatDir, message.id + ".json");
-            FileWriter writer = new FileWriter(msgFile);
-            writer.write(json.toString());
-            writer.close();
-
-            Log.i(TAG, "Saved deleted message: " + message.id);
-        } catch (Exception e) {
-            Log.e(TAG, "Failed to save message: " + e.getMessage());
+        // Update memory cache immediately
+        List<TdApi.Message> cachedList = chatDeletedMessagesCache.get(chatId);
+        if (cachedList != null) {
+            synchronized (cachedList) {
+                // Remove if exists (update)
+                for (int i = 0; i < cachedList.size(); i++) {
+                    if (cachedList.get(i).id == message.id) {
+                        cachedList.remove(i);
+                        break;
+                    }
+                }
+                cachedList.add(message);
+                // Sort desc
+                Collections.sort(cachedList, (m1, m2) -> Long.compare(m2.id, m1.id));
+            }
         }
+
+        new Thread(() -> {
+            if (savedMessagesDir == null) return;
+            
+            try {
+                File chatDir = new File(savedMessagesDir, String.valueOf(chatId));
+                if (!chatDir.exists()) chatDir.mkdirs();
+
+                JSONObject json = new JSONObject();
+                json.put("id", message.id);
+                json.put("chatId", message.chatId);
+                json.put("senderId", serializeSender(message.senderId));
+                json.put("date", message.date);
+                json.put("editDate", message.editDate);
+                json.put("isOutgoing", message.isOutgoing);
+                json.put("content", serializeContent(message.content, message.chatId, message.id));
+
+                // Mark as locally deleted (Ghost)
+                json.put("is_ghost", true);
+
+                File msgFile = new File(chatDir, message.id + ".json");
+                FileWriter writer = new FileWriter(msgFile);
+                writer.write(json.toString());
+                writer.close();
+
+            } catch (Exception e) {
+                // Ignore
+            }
+        }).start();
     }
 
     public List<TdApi.Message> getDeletedMessages(long chatId) {
+        // Check cache first
+        List<TdApi.Message> cachedList = chatDeletedMessagesCache.get(chatId);
+        if (cachedList != null) {
+            synchronized (cachedList) {
+                return new ArrayList<>(cachedList);
+            }
+        }
+
         if (savedMessagesDir == null) {
-            android.util.Log.e(TAG, "getDeletedMessages: savedMessagesDir is null");
             return Collections.emptyList();
         }
 
         File chatDir = new File(savedMessagesDir, String.valueOf(chatId));
         if (!chatDir.exists()) {
-             android.util.Log.e(TAG, "getDeletedMessages: Chat dir not found: " + chatDir.getAbsolutePath());
              return Collections.emptyList();
         }
 
         List<TdApi.Message> messages = new ArrayList<>();
         File[] files = chatDir.listFiles();
         if (files == null) {
-             android.util.Log.e(TAG, "getDeletedMessages: listFiles returned null");
              return messages;
         }
-
-        android.util.Log.e(TAG, "getDeletedMessages: Found " + files.length + " saved message files in " + chatDir.getName());
-
 
         for (File f : files) {
             // Only process JSON files, skip media files
@@ -434,12 +459,19 @@ public class DeletedMessagesManager { // Sync fix
                     messages.add(msg);
                 }
             } catch (Exception e) {
-                Log.e(TAG, "Error loading ghost message: " + e.getMessage());
+                // Ignore
             }
         }
+        
+        // Sort
+        Collections.sort(messages, (m1, m2) -> Long.compare(m2.id, m1.id));
+        
+        // Populate cache (synchronized list)
+        chatDeletedMessagesCache.put(chatId, Collections.synchronizedList(new ArrayList<>(messages)));
+        
         return messages;
     }
-
+    
     public void markAsDeletedByMe(long[] messageIds) {
         for (long id : messageIds) {
             deletedByMeMessageIds.add(id);
@@ -449,7 +481,6 @@ public class DeletedMessagesManager { // Sync fix
     public void updateMessageId(long oldId, TdApi.Message newMessage) {
         messageCache.remove(oldId);
         if (newMessage.isOutgoing) {
-            android.util.Log.e(TAG, "Re-caching OUTGOING message with new ID: old=" + oldId + " new=" + newMessage.id);
             messageCache.put(newMessage.id, newMessage);
             indexFiles(newMessage);
         }
@@ -458,70 +489,77 @@ public class DeletedMessagesManager { // Sync fix
     public boolean isDeletedByMe(long messageId) {
         boolean result = deletedByMeMessageIds.contains(messageId);
         if (result) {
-            android.util.Log.e(TAG, "Message " + messageId + " was deleted by me - removing from save list");
             deletedByMeMessageIds.remove(messageId);
         }
         return result;
     }
 
     public boolean isMessageDeleted(long messageId) {
-        boolean isDeleted = deletedMessageIds.contains(messageId);
-        android.util.Log.e(TAG, "isMessageDeleted(" + messageId + ") = " + isDeleted + ", deletedMessageIds size: " + deletedMessageIds.size());
-        return isDeleted;
+        return deletedMessageIds.contains(messageId);
     }
 
     public String getDeletedMessageText(long messageId) {
         TdApi.Message cached = messageCache.get(messageId);
-        android.util.Log.e(TAG, "getDeletedMessageText(" + messageId + ") cached=" + (cached != null));
         if (cached == null) return null;
         
         if (cached.content instanceof TdApi.MessageText) {
             TdApi.MessageText textContent = (TdApi.MessageText) cached.content;
             String text = textContent.text != null ? textContent.text.text : null;
-            android.util.Log.e(TAG, "Deleted message text: " + text);
             return text;
         }
         
         return null;
     }
-    
+
     public void deleteGhostMessage(long messageId) {
         messageCache.remove(messageId);
         deletedMessageIds.remove(messageId);
         
-        if (savedMessagesDir == null) return;
+        // Update cache
+        for (List<TdApi.Message> list : chatDeletedMessagesCache.values()) {
+             boolean removed = false;
+             synchronized (list) {
+                 for (int i = 0; i < list.size(); i++) {
+                     if (list.get(i).id == messageId) {
+                         list.remove(i);
+                         removed = true;
+                         break;
+                     }
+                 }
+             }
+             if (removed) break;
+        }
         
-        File[] chatDirs = savedMessagesDir.listFiles();
-        if (chatDirs == null) return;
-        
-        for (File chatDir : chatDirs) {
-            if (chatDir != null && chatDir.isDirectory()) {
-                File msgFile = new File(chatDir, messageId + ".json");
-                if (msgFile.exists()) {
-                    msgFile.delete();
-                    android.util.Log.e(TAG, "Deleted ghost message file: " + messageId);
-                    return;
+        new Thread(() -> {
+            if (savedMessagesDir == null) return;
+            
+            File[] chatDirs = savedMessagesDir.listFiles();
+            if (chatDirs == null) return;
+            
+            for (File chatDir : chatDirs) {
+                if (chatDir != null && chatDir.isDirectory()) {
+                    File msgFile = new File(chatDir, messageId + ".json");
+                    if (msgFile.exists()) {
+                        msgFile.delete();
+                        return;
+                    }
                 }
             }
-        }
+        }).start();
     }
 
     private final Map<Long, Long> lastDeletedMessageIds = Collections.synchronizedMap(new HashMap<>());
 
     public void onMessagesDeleted(final org.thunderdog.challegram.telegram.Tdlib tdlib, final long chatId, final long[] messageIds) {
-        android.util.Log.e(TAG, "onMessagesDeleted request: " + java.util.Arrays.toString(messageIds) + ", dir: " + savedMessagesDir);
         if (savedMessagesDir == null) return;
         
         long maxId = lastDeletedMessageIds.containsKey(chatId) ? lastDeletedMessageIds.get(chatId) : 0;
         
         for (final long messageId : messageIds) {
              if (deletedByMeMessageIds.contains(messageId)) {
-                 android.util.Log.e(TAG, "Skipping message deleted by me: " + messageId);
                  deletedByMeMessageIds.remove(messageId);
                  continue;
              }
-             
-             android.util.Log.e(TAG, "Processing deleted message: " + messageId + " (isOutgoing check will happen in saveMessage)");
              
              deletedMessageIds.add(messageId); 
              if (messageId > maxId) {
@@ -530,19 +568,14 @@ public class DeletedMessagesManager { // Sync fix
              
              TdApi.Message cached = messageCache.get(messageId);
              if (cached != null) {
-                 android.util.Log.e(TAG, "CACHE HIT: " + messageId);
                  saveMessage(chatId, cached);
                  continue;
              }
 
              // Fallback to GetMessage (likely to fail for deleted messages)
-             android.util.Log.e(TAG, "Requesting GetMessage (Cache Miss): " + messageId);
              tdlib.client().send(new TdApi.GetMessage(chatId, messageId), result -> {
                  if (result.getConstructor() == TdApi.Message.CONSTRUCTOR) {
-                     android.util.Log.e(TAG, "GetMessage SUCCESS: " + messageId);
                      saveMessage(chatId, (TdApi.Message) result);
-                 } else {
-                     android.util.Log.e(TAG, "GetMessage failed for " + messageId + ": " + result);
                  }
             });
         }
