@@ -252,13 +252,12 @@ public class Tdlib implements TdlibProvider, Settings.SettingsChangeListener, Da
     }
   };
   };
+
   private final Client.ResultHandler silentHandler = object -> {
     if (object.getConstructor() == TdApi.Error.CONSTRUCTOR) {
       Log.e("TDLib Error (silenced): %s", TD.toErrorString(object));
     }
   };
-
-  private final Map<Long, TdApi.ChatActiveStories> activeStories = new HashMap<>();
 
   private void updateChatActiveStories(TdApi.UpdateChatActiveStories update) {
     synchronized (dataLock) {
