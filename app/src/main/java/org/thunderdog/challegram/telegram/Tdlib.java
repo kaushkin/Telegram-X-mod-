@@ -267,6 +267,27 @@ public class Tdlib implements TdlibProvider, Settings.SettingsChangeListener, Da
     listeners.notifyChatActiveStoriesChanged(update.chatId, update.activeStories);
   }
 
+  private void loadActiveStories() {
+    client().send(new TdApi.LoadActiveStories(new TdApi.StoryListMain()), result -> {
+        if (result.getConstructor() == TdApi.Error.CONSTRUCTOR) {
+            Log.e("Failed to load active stories: %s", TD.toErrorString(result));
+        }
+    });
+  }
+
+  private void updateStory(TdApi.UpdateStory update) {
+      // For now, we rely on UpdateChatActiveStories for the list.
+      // But we might need to refresh if a new story is posted.
+      // Let's reload the list to be safe if we don't track individual stories yet.
+      // Or just do nothing if UpdateChatActiveStories is sufficient.
+      // Usually UpdateChatActiveStories is sent when list changes.
+  }
+
+  private void updateStoryListChatCount(TdApi.UpdateStoryListChatCount update) {
+      // Handle story count updates if needed.
+  }
+
+
   private final ResultHandler<TdApi.File> imageLoadHandler = (file, error) -> {
     if (error != null) {
       Log.e(Log.TAG_IMAGE_LOADER, "DownloadFile failed: %s", TD.toErrorString(error));
@@ -469,6 +490,12 @@ public class Tdlib implements TdlibProvider, Settings.SettingsChangeListener, Da
           } else if (constructor == TdApi.UpdateFile.CONSTRUCTOR) {
               TdApi.UpdateFile update = (TdApi.UpdateFile) object;
               org.thunderdog.challegram.data.DeletedMessagesManager.getInstance().updateFile(update.file);
+          } else if (constructor == TdApi.UpdateChatActiveStories.CONSTRUCTOR) {
+              tdlib.updateChatActiveStories((TdApi.UpdateChatActiveStories) object);
+          } else if (constructor == TdApi.UpdateStory.CONSTRUCTOR) {
+              tdlib.updateStory((TdApi.UpdateStory) object);
+          } else if (constructor == TdApi.UpdateStoryListChatCount.CONSTRUCTOR) {
+              tdlib.updateStoryListChatCount((TdApi.UpdateStoryListChatCount) object);
           }
 
           tdlib.processUpdate(this, (TdApi.Update) object);
@@ -9133,6 +9160,7 @@ public class Tdlib implements TdlibProvider, Settings.SettingsChangeListener, Da
       notifyConnectionDisplayStatusChanged();
       if (state == ConnectionState.CONNECTED) {
         onConnected();
+        loadActiveStories();
       } else if (prevState == ConnectionState.CONNECTED) {
         context().watchDog().helpDogeIfInBackground();
       }
