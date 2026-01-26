@@ -251,7 +251,6 @@ public class Tdlib implements TdlibProvider, Settings.SettingsChangeListener, Da
         break;
     }
   };
-  };
 
   private final Client.ResultHandler silentHandler = object -> {
     if (object.getConstructor() == TdApi.Error.CONSTRUCTOR) {
