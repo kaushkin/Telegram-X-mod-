@@ -258,12 +258,7 @@ public class Tdlib implements TdlibProvider, Settings.SettingsChangeListener, Da
     }
   };
 
-  private void updateChatActiveStories(TdApi.UpdateChatActiveStories update) {
-    synchronized (dataLock) {
-      activeStories.put(update.chatId, update.activeStories);
-    }
-    listeners.notifyChatActiveStoriesChanged(update.chatId, update.activeStories);
-  }
+
 
   private void loadActiveStories() {
     client().send(new TdApi.LoadActiveStories(new TdApi.StoryListMain()), result -> {
@@ -273,17 +268,7 @@ public class Tdlib implements TdlibProvider, Settings.SettingsChangeListener, Da
     });
   }
 
-  private void updateStory(TdApi.UpdateStory update) {
-      // For now, we rely on UpdateChatActiveStories for the list.
-      // But we might need to refresh if a new story is posted.
-      // Let's reload the list to be safe if we don't track individual stories yet.
-      // Or just do nothing if UpdateChatActiveStories is sufficient.
-      // Usually UpdateChatActiveStories is sent when list changes.
-  }
 
-  private void updateStoryListChatCount(TdApi.UpdateStoryListChatCount update) {
-      // Handle story count updates if needed.
-  }
 
 
   private final ResultHandler<TdApi.File> imageLoadHandler = (file, error) -> {
