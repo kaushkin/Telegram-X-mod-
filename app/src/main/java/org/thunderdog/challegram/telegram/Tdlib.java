@@ -260,10 +260,13 @@ public class Tdlib implements TdlibProvider, Settings.SettingsChangeListener, Da
 
 
 
-  private void loadActiveStories() {
+  public void loadActiveStories() {
+    android.util.Log.i("StoriesDebug", "Tdlib.loadActiveStories: Sending LoadActiveStories request");
     client().send(new TdApi.LoadActiveStories(new TdApi.StoryListMain()), result -> {
         if (result.getConstructor() == TdApi.Error.CONSTRUCTOR) {
-            Log.e("Failed to load active stories: %s", TD.toErrorString(result));
+            android.util.Log.e("StoriesDebug", "Tdlib.loadActiveStories: Error " + result.toString());
+        } else {
+            android.util.Log.i("StoriesDebug", "Tdlib.loadActiveStories: Success");
         }
     });
   }

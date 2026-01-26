@@ -176,17 +176,24 @@ public class ChatsController extends TelegramViewController<ChatsController.Argu
 
   public ChatsController (Context context, Tdlib tdlib) {
     super(context, tdlib);
+    tdlib.loadActiveStories();
+    android.util.Log.i("StoriesDebug", "ChatsController: Requesting stories");
   }
 
     @Override
     public void onChatActiveStoriesChanged (@NonNull TdApi.ChatActiveStories activeStories) {
+        android.util.Log.i("StoriesDebug", "ChatsController: onChatActiveStoriesChanged");
         runOnUiThreadOptional(this::updateStories);
     }
 
     private void updateStories() {
+        android.util.Log.i("StoriesDebug", "ChatsController.updateStories check");
         if (adapter != null) {
             java.util.List<Long> stories = tdlib.getActiveStoryChatIds();
+            android.util.Log.i("StoriesDebug", "ChatsController.updateStories: count " + stories.size());
             adapter.setStories(stories);
+        } else {
+             android.util.Log.w("StoriesDebug", "ChatsController.updateStories: adapter is null");
         }
     }
 
