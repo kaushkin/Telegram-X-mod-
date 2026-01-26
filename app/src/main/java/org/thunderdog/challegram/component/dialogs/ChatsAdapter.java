@@ -103,6 +103,25 @@ public class ChatsAdapter extends RecyclerView.Adapter<ChatsViewHolder> {
     return suggestedChatIds;
   }
 
+  private java.util.List<Long> storyChatIds;
+
+  public void setStories (java.util.List<Long> stories) {
+      boolean wasEmpty = !hasStories();
+      this.storyChatIds = stories;
+      boolean isEmpty = !hasStories();
+      if (wasEmpty && !isEmpty) {
+          notifyItemInserted(0);
+      } else if (!wasEmpty && isEmpty) {
+          notifyItemRemoved(0);
+      } else if (!isEmpty) {
+          notifyItemChanged(0);
+      }
+  }
+
+  public boolean hasStories() {
+      return storyChatIds != null && !storyChatIds.isEmpty();
+  }
+
   private boolean needArchive, hasArchive;
 
   public void setNeedArchive (boolean needArchive) {
