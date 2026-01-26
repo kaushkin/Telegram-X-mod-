@@ -251,11 +251,22 @@ public class Tdlib implements TdlibProvider, Settings.SettingsChangeListener, Da
         break;
     }
   };
+  };
   private final Client.ResultHandler silentHandler = object -> {
     if (object.getConstructor() == TdApi.Error.CONSTRUCTOR) {
       Log.e("TDLib Error (silenced): %s", TD.toErrorString(object));
     }
   };
+
+  private final Map<Long, TdApi.ChatActiveStories> activeStories = new HashMap<>();
+
+  private void updateChatActiveStories(TdApi.UpdateChatActiveStories update) {
+    synchronized (dataLock) {
+      activeStories.put(update.chatId, update.activeStories);
+    }
+    listeners.notifyChatActiveStoriesChanged(update.chatId, update.activeStories);
+  }
+
   private final ResultHandler<TdApi.File> imageLoadHandler = (file, error) -> {
     if (error != null) {
       Log.e(Log.TAG_IMAGE_LOADER, "DownloadFile failed: %s", TD.toErrorString(error));
@@ -2785,6 +2796,20 @@ public class Tdlib implements TdlibProvider, Settings.SettingsChangeListener, Da
       }
     }
     return null;
+  }
+
+  public java.util.List<Long> getActiveStoryChatIds() {
+      synchronized (dataLock) {
+          java.util.List<Long> result = new java.util.ArrayList<>();
+          if (activeStories != null) {
+              for (java.util.Map.Entry<Long, TdApi.ChatActiveStories> entry : activeStories.entrySet()) {
+                  if (entry.getValue().list.length > 0) {
+                      result.add(entry.getKey());
+                  }
+              }
+          }
+          return result;
+      }
   }
 
   public @NonNull TdlibChatList chatList (@NonNull TdApi.ChatList chatList) {

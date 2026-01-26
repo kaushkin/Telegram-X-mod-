@@ -603,6 +603,10 @@ public class TdlibListeners {
     );
   }
 
+  void notifyChatActiveStoriesChanged(long chatId, TdApi.ChatActiveStories activeStories) {
+    runChatUpdate(chatId, listener -> listener.onChatActiveStoriesChanged(activeStories));
+  }
+
   private void runMessageUpdate (long chatId, RunnableData<MessageListener> act) {
     runUpdate(act,
       messageListeners.iterator(),

@@ -41,6 +41,8 @@ import java.util.HashSet;
 import java.util.Set;
 
 import me.vkryl.core.ArrayUtils;
+import me.vkryl.core.ArrayUtils;
+import org.thunderdog.challegram.component.story.StoryListView;
 import tgx.td.ChatPosition;
 
 public class ChatsAdapter extends RecyclerView.Adapter<ChatsViewHolder> {
@@ -165,6 +167,8 @@ public class ChatsAdapter extends RecyclerView.Adapter<ChatsViewHolder> {
       ((ChatView) holder.itemView).setChat(null);
     } else if (holder.getItemViewType() == VIEW_TYPE_SUGGESTED_CHATS) {
       ((SuggestedChatsView) holder.itemView).setChatIds(ArrayUtils.EMPTY_LONGS, false);
+    } else if (holder.getItemViewType() == VIEW_TYPE_STORIES) {
+        // Recycle stories if needed
     }
   }
 
@@ -196,6 +200,10 @@ public class ChatsAdapter extends RecyclerView.Adapter<ChatsViewHolder> {
         holder.setChatIds(suggestedChatIds);
         break;
       }
+      case VIEW_TYPE_STORIES: {
+          ((StoryListView) holder.itemView).setStories(storyChatIds);
+          break;
+      }
     }
   }
 
@@ -214,6 +222,8 @@ public class ChatsAdapter extends RecyclerView.Adapter<ChatsViewHolder> {
         ((SuggestedChatsView) holder.itemView).attach();
         break;
       }
+      case VIEW_TYPE_STORIES:
+        break;
     }
   }
 
@@ -232,6 +242,8 @@ public class ChatsAdapter extends RecyclerView.Adapter<ChatsViewHolder> {
         ((SuggestedChatsView) holder.itemView).detach();
         break;
       }
+      case VIEW_TYPE_STORIES:
+        break;
     }
   }
 
@@ -244,7 +256,21 @@ public class ChatsAdapter extends RecyclerView.Adapter<ChatsViewHolder> {
     if (hasChats()) {
       itemCount += chats.size() + 1;
     }
+    if (hasStories()) {
+      itemCount++;
+    }
     return itemCount;
+  }
+
+  private java.util.List<Long> storyChatIds;
+  
+  public void setStories(java.util.List<Long> stories) {
+      this.storyChatIds = stories;
+      notifyDataSetChanged();
+  }
+  
+  public boolean hasStories() {
+      return storyChatIds != null && !storyChatIds.isEmpty();
   }
 
   public int getChatCount () {
@@ -259,7 +285,7 @@ public class ChatsAdapter extends RecyclerView.Adapter<ChatsViewHolder> {
     return suggestedChatIds.length > 0;
   }
 
-  @IntDef({VIEW_TYPE_CHAT, VIEW_TYPE_INFO, VIEW_TYPE_EMPTY, VIEW_TYPE_SUGGESTED_CHATS})
+  @IntDef({VIEW_TYPE_CHAT, VIEW_TYPE_INFO, VIEW_TYPE_EMPTY, VIEW_TYPE_SUGGESTED_CHATS, VIEW_TYPE_STORIES})
   public @interface ViewType {
   }
 
@@ -267,11 +293,15 @@ public class ChatsAdapter extends RecyclerView.Adapter<ChatsViewHolder> {
   public static final int VIEW_TYPE_INFO = 1;
   public static final int VIEW_TYPE_EMPTY = 2;
   public static final int VIEW_TYPE_SUGGESTED_CHATS = 3;
+  public static final int VIEW_TYPE_STORIES = 4;
 
   @Override
   public int getItemViewType (int position) {
-    if (hasSuggestedChats() && position == 0) {
-      return VIEW_TYPE_SUGGESTED_CHATS;
+    if (hasStories() && position == 0) {
+      return VIEW_TYPE_STORIES;
+    }
+    if (hasSuggestedChats() && position == (hasStories() ? 1 : 0)) {
+       return VIEW_TYPE_SUGGESTED_CHATS;
     }
     if (hasChats()) {
       int chatIndex = getChatIndexByItemPosition(position);
@@ -316,14 +346,14 @@ public class ChatsAdapter extends RecyclerView.Adapter<ChatsViewHolder> {
     if (chatIndex == -1) {
       return -1;
     }
-    return hasSuggestedChats() ? chatIndex + 1 : chatIndex;
+    return hasSuggestedChats() ? chatIndex + (hasStories() ? 2 : 1) : chatIndex + (hasStories() ? 1 : 0);
   }
 
   public int getChatIndexByItemPosition (int itemPosition) {
     if (itemPosition == RecyclerView.NO_POSITION) {
       return -1;
     }
-    return hasSuggestedChats() ? itemPosition - 1 : itemPosition;
+    return hasSuggestedChats() ? itemPosition - (hasStories() ? 2 : 1) : itemPosition - (hasStories() ? 1 : 0);
   }
 
   public int findChatItemPosition (long chatId) {

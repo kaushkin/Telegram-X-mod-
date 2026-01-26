@@ -43,6 +43,7 @@ public interface ChatListener extends ForumTopicInfoListener {
   default void onChatHasProtectedContentChanged (long chatId, boolean hasProtectedContent) { }
   default void onChatReadOutbox (long chatId, long lastReadOutboxMessageId) { }
   default void onChatMarkedAsUnread (long chatId, boolean isMarkedAsUnread) { }
+  default void onChatReportSpamStateChanged (long chatId, boolean isSpam) { }
   default void onChatIsTranslatableChanged (long chatId, boolean isTranslatable) { }
   default void onChatBlockListChanged (long chatId, @Nullable TdApi.BlockList blockList) { }
   default void onChatOnlineMemberCountChanged (long chatId, int onlineMemberCount) { }
