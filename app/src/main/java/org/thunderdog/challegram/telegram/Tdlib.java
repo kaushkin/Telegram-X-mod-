@@ -2813,7 +2813,7 @@ public class Tdlib implements TdlibProvider, Settings.SettingsChangeListener, Da
           java.util.List<Long> result = new java.util.ArrayList<>();
           if (activeStories != null) {
               for (java.util.Map.Entry<Long, TdApi.ChatActiveStories> entry : activeStories.entrySet()) {
-                  if (entry.getValue().list.length > 0) {
+                  if (entry.getValue().stories.length > 0) {
                       result.add(entry.getKey());
                   }
               }

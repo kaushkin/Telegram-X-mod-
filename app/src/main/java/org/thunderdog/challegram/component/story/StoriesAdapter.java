@@ -8,7 +8,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import org.drinkless.tdlib.TdApi;
 import org.thunderdog.challegram.telegram.Tdlib;
-import org.thunderdog.challegram.util.ViewUtils;
+
 
 import java.util.ArrayList;
 import java.util.List;

@@ -68,7 +68,6 @@ public class StoryView extends BaseView implements Destroyable, ComplexReceiverP
         if (title != null) {
             trimmedTitle = new Text.Builder(title, VIEW_WIDTH - Screen.dp(4), Paints.robotoStyleProvider(11f), TextColorSets.Regular.NORMAL)
                     .singleLine()
-                    .ellipsize(TextUtils.TruncateAt.END)
                     .build();
         } else {
             trimmedTitle = null;
@@ -123,13 +122,13 @@ public class StoryView extends BaseView implements Destroyable, ComplexReceiverP
         }
     }
 
-    @Override
+
     public void attach() {
         avatarReceiver.attach();
         complexReceiver.attach();
     }
 
-    @Override
+
     public void detach() {
         avatarReceiver.detach();
         complexReceiver.detach();
