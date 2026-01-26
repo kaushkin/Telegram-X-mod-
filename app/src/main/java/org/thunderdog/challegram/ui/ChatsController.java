@@ -138,17 +138,6 @@ public class ChatsController extends TelegramViewController<ChatsController.Argu
   ChatListener, ConnectionListener, MessageListener, MessageEditListener, NotificationSettingsListener,
   TdlibCache.SupergroupDataChangeListener, TdlibCache.BasicGroupDataChangeListener, TdlibCache.UserDataChangeListener, TdlibCache.SecretChatDataChangeListener,
   ChatListListener,
-    @Override
-    public void onChatActiveStoriesChanged (@NonNull TdApi.ChatActiveStories activeStories) {
-        runOnUiThreadOptional(this::updateStories);
-    }
-
-    private void updateStories() {
-        if (adapter != null) {
-            java.util.List<Long> stories = tdlib.getActiveStoryChatIds();
-            adapter.setStories(stories);
-        }
-    }
   RecyclerViewProvider,
   TGLegacyManager.EmojiLoadListener,
   ViewPagerController.ScrollToTopDelegate, BaseView.ActionListProvider,
@@ -188,6 +177,18 @@ public class ChatsController extends TelegramViewController<ChatsController.Argu
   public ChatsController (Context context, Tdlib tdlib) {
     super(context, tdlib);
   }
+
+    @Override
+    public void onChatActiveStoriesChanged (@NonNull TdApi.ChatActiveStories activeStories) {
+        runOnUiThreadOptional(this::updateStories);
+    }
+
+    private void updateStories() {
+        if (adapter != null) {
+            java.util.List<Long> stories = tdlib.getActiveStoryChatIds();
+            adapter.setStories(stories);
+        }
+    }
 
   private MainController parentController;
 
