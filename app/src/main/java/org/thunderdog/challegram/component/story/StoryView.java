@@ -99,7 +99,6 @@ public class StoryView extends BaseView implements Destroyable, ComplexReceiverP
         int avatarR = r - Screen.dp(3f);
         
         avatarReceiver.setBounds(cx - avatarR, cy - avatarR, cx + avatarR, cy + avatarR);
-        avatarReceiver.setRadius(avatarR); // Force circle
     }
 
     @Override
