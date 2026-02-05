@@ -8635,15 +8635,7 @@ public class Tdlib implements TdlibProvider, Settings.SettingsChangeListener, Da
     return storiesComparator;
   }
 
-  public void loadActiveStories() {
-    client.send(new TdApi.LoadActiveStories(new TdApi.StoryListMain()), null);
-  }
 
-  public List<Long> getActiveStoryChatIds() {
-    synchronized (dataLock) {
-      return new ArrayList<>(activeStories.keySet());
-    }
-  }
 
   @NonNull
   public StoryList getStoryList (@NonNull TdApi.StoryList list) {
