@@ -79,7 +79,7 @@ public class StoryView extends BaseView implements Destroyable, ComplexReceiverP
             ringPaint.setColor(Theme.getColor(ColorId.textLight));
         } else {
             // Re-apply gradient
-             Shader shader = new LinearGradient(0, 0, AVATAR_SIZE, AVATAR_SIZE,
+            Shader shader = new LinearGradient(0, 0, AVATAR_SIZE, AVATAR_SIZE,
                 new int[]{0xFF0077FF, 0xFF8833FF}, null, Shader.TileMode.CLAMP);
             ringPaint.setShader(shader);
         }
