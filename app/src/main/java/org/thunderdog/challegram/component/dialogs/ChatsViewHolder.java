@@ -44,6 +44,7 @@ import org.thunderdog.challegram.widget.BaseView;
 import org.thunderdog.challegram.widget.ListInfoView;
 import org.thunderdog.challegram.widget.NoScrollTextView;
 import org.thunderdog.challegram.widget.SuggestedChatsView;
+import org.thunderdog.challegram.component.story.StoryListView;
 
 public class ChatsViewHolder extends RecyclerView.ViewHolder {
   public ChatsViewHolder (View itemView) {
@@ -58,6 +59,8 @@ public class ChatsViewHolder extends RecyclerView.ViewHolder {
         return SettingHolder.measureHeightForType(ListItem.TYPE_LIST_INFO_VIEW);
       case ChatsAdapter.VIEW_TYPE_SUGGESTED_CHATS:
         return Screen.dp(SuggestedChatsView.DEFAULT_HEIGHT_DP);
+      case ChatsAdapter.VIEW_TYPE_STORIES:
+        return Screen.dp(100f);
       default:
         throw new IllegalArgumentException("viewType = " + viewType);
     }
@@ -136,6 +139,11 @@ public class ChatsViewHolder extends RecyclerView.ViewHolder {
         if (themeProvider != null) {
           themeProvider.addThemeInvalidateListener(view);
         }
+        return new ChatsViewHolder(view);
+      }
+      case ChatsAdapter.VIEW_TYPE_STORIES: {
+        StoryListView view = new StoryListView(context, tdlib);
+        view.setLayoutParams(new RecyclerView.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
         return new ChatsViewHolder(view);
       }
       default: {
